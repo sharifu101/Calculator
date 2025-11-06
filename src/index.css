@@ -1,0 +1,578 @@
+/* ======= Brand theme ======= */
+:root{
+  --bg:#f7f9fb;
+  --surface:#fff;
+  --ink:#0f172a;
+  --muted:#667085;
+  --brand:#059669;          /* emerald-600 */
+  --brand-700:#047857;
+  --border:#e6e9ef;
+  --ring:rgba(5,150,105,.35);
+  --shadow:0 14px 34px rgba(2,6,23,.07), 0 2px 8px rgba(2,6,23,.05);
+}
+
+/* ======= Topbar ======= */
+
+.topbar{position:sticky;top:0;z-index:50;
+  background:linear-gradient(90deg,#0aa5a5,#059669);color:#fff;
+  box-shadow:0 10px 30px rgba(2,6,23,.2)}
+.topbar .inner{max-width:1200px;margin:auto;display:flex;align-items:center;gap:14px;padding:12px 18px}
+.topbar-logo{height:26px;width:auto}
+.topbar-title{font-weight:800;letter-spacing:.25px}
+.badge{margin-left:auto;background:rgba(255,255,255,.16);padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:12.5px}
+
+/* ======= Page layout ======= */
+html,body,#root{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+.app-shell{min-height:100%;padding:22px}
+.container-xxl{max-width:1200px;margin:auto;display:grid;gap:22px;grid-template-columns:1fr}
+@media (min-width:1024px){.container-xxl{grid-template-columns:1fr 1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:22px}
+
+/* ======= Section headings ======= */
+.card h3{font-weight:700;margin:12px 0 10px}
+.section-head{display:flex;align-items:center;gap:10px;margin:6px 0 14px}
+.section-head .line{height:1px;background:var(--border);flex:1}
+
+/* ======= Forms ======= */
+.form-grid{display:grid;gap:18px}
+.form-row{display:grid;gap:12px}
+@media (min-width:640px){.form-row{grid-template-columns:repeat(3,1fr)}}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+.input,.select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;transition:.15s}
+.input:focus,.select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--ring)}
+.inline{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.radio{appearance:none;width:16px;height:16px;border:2px solid var(--border);border-radius:50%;position:relative}
+.radio:checked{border-color:var(--brand)}
+.radio:checked::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--brand)}
+
+/* ======= Buttons ======= */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid transparent;font-weight:700;cursor:pointer;user-select:none}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-700)}
+
+/* ======= Summary bar ======= */
+.summary{display:grid;gap:12px;margin-top:10px}
+@media (min-width:540px){.summary{grid-template-columns:repeat(3,1fr)}}
+.sum-card{background:#f1f8f5;border:1px solid #d7efe4;border-radius:12px;padding:12px 14px}
+.sum-label{font-size:12.5px;color:#0f5132}
+.sum-value{font-size:18px;font-weight:800;color:#065f46}
+
+/* ======= Invoice (A4 on desktop, fluid on mobile) ======= */
+.invoice-wrap{position:relative;margin-inline:auto;background:#fff;border:1px solid var(--border);
+  width:794px;min-height:1123px;border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.invoice-inner{position:relative;z-index:1;padding:28px}
+.invoice-pad-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.2;pointer-events:none}
+
+.brand-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.brand-left{display:flex;align-items:center;gap:14px}
+.brand-logo{height:46px;width:auto}
+.brand-title{font-size:22px;font-weight:900;letter-spacing:.2px}
+.brand-sub{font-size:12.5px;color:var(--muted);margin-top:-2px}
+
+.meta-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+@media (min-width:620px){.meta-grid{grid-template-columns:1fr 1fr}}
+.meta-item{font-size:13px}
+.meta-item b{font-weight:700}
+
+/* Table */
+.table{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table thead th{background:#f8fafc;color:#0f172a;font-weight:700;font-size:13px;padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
+.table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.table tr:nth-child(even) td{background:#fcfdfd}
+.td-right{text-align:right}
+.row-subtle{background:#f6f7fb}
+.row-accent{background:#ecfdf5}
+.total-big{font-size:16px;font-weight:800}
+.invoice-foot{margin-top:16px;color:var(--muted);font-size:12px}
+
+/* Responsive adjustments */
+@media (max-width:900px){
+  .invoice-wrap{width:100%;min-height:auto;border-radius:12px}
+  .invoice-inner{padding:18px}
+  .brand-logo{height:38px}
+  .table thead th,.table td{padding:8px 10px;font-size:13px}
+}
+
+/* Print */
+@media print{
+  body{background:#fff}
+  .app-shell{padding:0}
+  .container-xxl{display:block}
+  .card{box-shadow:none;border:none;padding:0}
+  .invoice-wrap{border:none;box-shadow:none;width:auto;min-height:auto}
+}
+
+/* ==== Dark pad skin for invoice preview & print ==== */
+.invoice-dark .invoice-inner{
+  /* Pad এর ডেকোরেশন এড়াতে safe padding */
+  padding: 96px 42px 90px 42px;
+  color: #fff;
+}
+.invoice-dark .brand-sub{ color: rgba(255,255,255,.78) }
+.invoice-dark .table{
+  border-color: rgba(255,255,255,.18);
+}
+.invoice-dark .table thead th{
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.18);
+}
+.invoice-dark .table td{
+  color:#fff;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.invoice-dark .table tr:nth-child(even) td{
+  background: rgba(255,255,255,.03);
+}
+.invoice-dark .row-subtle td{
+  background: rgba(255,255,255,.06);
+}
+.invoice-dark .row-accent td{
+  background: rgba(16,185,129,.18); /* emerald tint */
+}
+.invoice-dark .invoice-foot{ color: rgba(255,255,255,.75) }
+
+/* ছোট স্ক্রিনে প্যাডিং একটু কমাও */
+@media (max-width:900px){
+  .invoice-dark .invoice-inner{ padding: 70px 24px 70px 24px; }
+}
+
+
+
+/* Light card sitting on top of pad so text is always readable */
+.invoice-panel{
+  margin-top: 10px;
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(15,23,42,.08);
+  border-radius: 14px;
+  padding: 16px;
+  color: #0f172a;
+}
+
+/* Make sure table uses dark ink inside the panel */
+.invoice-panel .table thead th{
+  background:#f8fafc;
+  color:#0f172a;
+  border-bottom:1px solid #e5e7eb;
+}
+.invoice-panel .table td{
+  color:#0f172a;
+  border-bottom:1px solid #eef2f7;
+}
+.invoice-panel .row-subtle td{ background:#f8fafc; }
+.invoice-panel .row-accent td{ background:#ecfdf5; }
+.invoice-panel .invoice-foot{ color:#475569; }
+
+/* If you kept .invoice-dark, neutralize its white text inside the panel */
+.invoice-dark .invoice-panel,
+.invoice-dark .invoice-panel *{
+  color: inherit;
+}
+
+
+
+/* ==== Ref + Date ==== */
+.ref-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.ref-left{font-size:13.5px}
+.ref-left .ref-note{font-size:11.5px;color:#000000;margin-top:2px}
+.ref-right{font-size:13.5px}
+
+/* ==== Customer info box ==== */
+.info-box{margin:8px 0 12px;border:1px solid #000000;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.92)}
+.info-title{background:#000000;color:#fff;padding:8px 12px;font-weight:700;letter-spacing:.2px}
+.info-grid{display:grid;gap:8px;padding:12px;grid-template-columns:1fr 1fr;font-size:13.5px}
+.info-grid span{color:#000000;font-weight:600;margin-right:6px}
+@media (max-width:620px){.info-grid{grid-template-columns:1fr}}
+
+/* ==== Table item text ==== */
+.table .item-name{font-weight:600}
+.table .item-brand{font-size:18px;color:#000000;margin-top:2px}
+
+/* ==== In words & signatures ==== */
+.in-words {
+  margin-top: 20px;
+  font-size: 13.5px;
+  color: #000000; /* ✅ text color black */
+}
+
+.signatures {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 18px;
+}
+
+.sign-left {
+  position: relative;
+}
+
+.seal-img {
+  height: 72px;
+  opacity: .9;
+  margin-right: 12px;
+}
+
+.sign-img {
+  height: 54px;
+  display: block;
+  margin-top: 6px;
+}
+
+.sign-caption {
+  font-size: 12px;
+  color: #000000;
+  margin-top: 4px;
+}
+
+
+/* Force black text in Customer Information box */
+.info-box .info-grid,
+.info-box .info-grid div,
+.info-box .info-grid span {
+  color: #0f172a !important;   /* slate-900-ish */
+}
+
+/* Keep the grey header bar white text */
+.info-box .info-title {
+  color: #ffffff !important;
+}
+
+
+/* ===== Table: full grid lines + comfy height ===== */
+.table{
+  width:100%;
+  border-collapse: collapse;      /* full grid */
+  margin-top:12px;
+  font-size:13.5px;
+}
+
+.table thead th{
+  background:#f8fafc;
+  color:#0f172a;
+  font-weight:700;
+  padding:12px 12px;
+  border:1px solid #dfe3ea;       /* header box lines */
+  text-align:left;
+}
+
+.table td{
+  padding:12px 12px;              /* a bit taller so text doesn't look cramped */
+  border:1px solid #e6eaf1;       /* full grid lines */
+  vertical-align:top;
+}
+
+.td-right{text-align:right}
+.row-subtle td{ background:#f6f8fb }
+.row-accent  td{ background:#ecfdf5 }
+.total-big{ font-size:16px; font-weight:800 }
+
+
+
+.in-words{ margin-top:20px; font-size:13.5px; color:#000 !important; }
+.sign-caption{ font-size:12px; color:#000 !important; margin-top:4px; }
+
+
+
+/* Invoice white card on top of pad: no border, no shadow */
+.invoice-panel{
+  margin-top:10px;
+  background:rgba(255,255,255,.96);
+  border:0;                /* ⬅ no border */
+  box-shadow:none;         /* in case any */
+  border-radius:14px;
+  padding:16px;
+  color:#111827;
+}
+
+
+/* ==== Signatures row (left) ==== */
+.signatures{
+  display:flex;
+  align-items:flex-end;     /* align bottoms */
+  gap:16px;
+  margin-top:18px;
+}
+
+.seal-img{ height:80px; opacity:.95; }
+.sign-img{ height:56px; display:block; margin-bottom:6px; }
+
+/* optional: name line under signature (looks premium) */
+.sig-block{
+  display:flex;
+  flex-direction:column;
+}
+.sig-block .sign-img + .sign-caption{
+  padding-top:6px;
+  border-top:1px solid #1118271a;  /* subtle line under sign */
+}
+
+
+/* While capturing for PDF: make everything crisp */
+.print-quality{
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.print-quality *{
+  filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;           /* scaled elements blur করে */
+}
+
+/* Seal/Signature images: keep native pixels */
+.seal-img, .sign-img{
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+/* ======== Fix PriceForm Alignment ======== */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.input, .select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: 0.2s ease;
+}
+
+.input:focus, .select:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.25);
+}
+
+label {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+/* Add breathing space below each section */
+section {
+  margin-bottom: 20px;
+}
+
+/* Make sure long labels wrap nicely */
+label span, label {
+  white-space: normal;
+}
+
+/* Mobile responsive layout fix */
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+/* === FORM LAYOUT IMPROVED === */
+.form-row {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  gap: 4px;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1.2px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
+  transition: all 0.2s ease;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+}
+
+/* === SECTION HEADINGS === */
+section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+section {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fafafa;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* === FORM WRAPPER BEAUTIFY === */
+.card {
+  border-radius: 14px;
+  padding: 22px 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* === GRID RESPONSIVE === */
+@media (max-width: 1024px) {
+  .container-xxl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  label {
+    font-size: 13px;
+  }
+  .input, .select {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
+
+
+
+/* --- Grid helpers --- */
+.form-row{ display:grid; gap:12px; }
+.form-row.cols-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+.form-row.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+
+/* grid overflow fix */
+.form-row > *{ min-width:0; }
+
+/* Inputs: consistent sizing */
+.input, .select{
+  width:100%;
+  box-sizing:border-box;
+  height:40px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  transition:.15s;
+  appearance:none;
+}
+.input:focus, .select:focus{
+  outline:none;
+  border-color:var(--brand);
+  box-shadow:0 0 0 4px var(--ring);
+}
+
+/* Label spacing */
+label{ display:block; margin-bottom:6px; font-size:.85rem; color:var(--muted); }
+
+/* Small screens: single column */
+@media (max-width:640px){
+  .form-row.cols-2, .form-row.cols-3{ grid-template-columns:1fr; }
+}
+
+
+
+/* ===== Table line color refresh ===== */
+:root{
+  --tbl-border: #000000;     /* গ্রিড লাইন (সাবtle নীলচে-ধূসর) */
+  --tbl-header: #000000;     /* হেডারের বটম-লাইন */
+  --tbl-zebra : #000000;     /* জেব্রা রো ব্যাকগ্রাউন্ড */
+  --tbl-subtle: #eef2f8;     /* সাবটোটাল রো ব্যাকগ্রাউন্ড */
+  --tbl-accent: #e9fbf2;     /* গ্র্যান্ড টোটাল রো ব্যাকগ্রাউন্ড (হালকা সবুজ tint) */
+}
+
+/* grid lines + header */
+.table{
+  border-collapse: collapse;
+  border: 1px solid var(--tbl-border);
+}
+.table thead th{
+  background: #f5f7fb;
+  border: 1px solid var(--tbl-header);
+  color: #0f172a;
+}
+.table td{
+  border: 1px solid var(--tbl-border);
+}
+
+/* zebra rows */
+.table tbody tr:nth-child(even) td{
+  background: var(--tbl-zebra);
+}
+
+/* subtotal / installation / grand total */
+.row-subtle td{ background: var(--tbl-subtle) !important; }
+.row-accent  td{ background: var(--tbl-accent)  !important; }
+
+/* totals row edge একটু দৃশ্যমান */
+.row-subtle td.td-right b,
+.row-accent  td.td-right{
+  border-left: 0;
+  border-right: 0;
+}
+
+/* Grand Total cell—উপরের বর্ডার একটু মোটা */
+.row-accent td:last-child{
+  border-top: 1px solid #8bd4b3;
+  font-weight: 800;
+}
+
+/* invoice-panel ভেতরে থাকলে একই টোন বজায় রাখো */
+.invoice-panel .table{ border-color: var(--tbl-border); }
+.invoice-panel .table thead th{ border-color: var(--tbl-header); }
+.invoice-panel .table td{ border-color: var(--tbl-border); }
+
+
+
+
+/* ===== Price title above table ===== */
+.price-title{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:6px 0 10px;
+  padding:10px 12px;
+  background:#004b96;border:1px solid #000000;border-radius:10px;
+}
+.price-title-left{color:#0f172a}
+.price-title-left span{color:#334155}
+
+/* tier badge on title bar */
+.tier-badge{
+  font-weight:800;font-size:12.5px;padding:6px 10px;border-radius:999px;
+  border:1px solid rgba(15,23,42,.12); background:#fff;
+}
+.tier-badge.gold{ color:#b08d57; border-color:#e6d8bd; background:#fffaf1; }
+.tier-badge.platinum{ color:#475569; border-color:#cfd8e3; background:#f8fbff; }
+.tier-badge.diamond{ color:#0f766e; border-color:#b7f0e2; background:#ecfffb; }
+
+/* ===== Tier selector mini-cards on form ===== */
+.tier-row{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.tier-chip{
+  display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+  padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; background:#fff;
+  cursor:pointer; transition:.15s; min-width:110px;
+}
+.tier-chip .tier-title{ font-weight:800; }
+.tier-chip .tier-note{ font-size:12px; color:#64748b; }
+.tier-chip:hover{ box-shadow:0 2px 10px rgba(2,6,23,.06); border-color:#dbe1ea; }
+.tier-chip.active{ border-color:#059669; box-shadow:0 0 0 3px rgba(5,150,105,.15); }
