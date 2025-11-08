@@ -31,7 +31,6 @@ body{
 
 
 
-
 .app-shell{min-height:100%;padding:22px}
 .container-xxl{max-width:1200px;margin:auto;display:grid;gap:22px;grid-template-columns:1fr}
 @media (min-width:1024px){.container-xxl{grid-template-columns:1fr 1fr}}

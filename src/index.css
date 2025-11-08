@@ -106,11 +106,116 @@ label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
 .sum-label{font-size:12.5px;color:#0f5132}
 .sum-value{font-size:18px;font-weight:800;color:#065f46}
 
-/* ======= Invoice (A4 on desktop, fluid on mobile) ======= */
-.invoice-wrap{position:relative;margin-inline:auto;background:#fff;border:1px solid var(--border);
-  width:794px;min-height:1123px;border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
-.invoice-inner{position:relative;z-index:1;padding:28px}
-.invoice-pad-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.2;pointer-events:none}
+/* ======= Invoice (exact A4 on desktop, fluid on mobile) ======= */
+.invoice-wrap{
+  position:relative;
+  margin-inline:auto;
+  background:#fff;
+  border:1px solid var(--border);
+  width:794px;        /* A4 @ ~96dpi */
+  height:1123px;      /* A4 @ ~96dpi */
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.invoice-inner{ position:relative; z-index:1; padding:28px; }
+
+/* on-screen legibility */
+body{ line-height:1.6; }
+.table td, .table thead th{ line-height:1.45; }
+
+/* ছোট স্ক্রিনে responsive */
+@media (max-width:900px){
+  .invoice-wrap{ width:100%; height:auto; border-radius:12px; }
+  .invoice-inner{ padding:18px; }
+}
+
+/* Print-এও A4 মাপ বজায় রাখো */
+@media print{
+  .invoice-wrap{ width:794px; height:1123px; }
+}
+
+
+/* ================== INVOICE OVERRIDES (tight + borderless) ================== */
+
+/* A4 exact, no outer border/shadow, background from pad image only */
+.invoice-wrap{
+  position: relative !important;
+  margin-inline: auto !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: 794px !important;    /* A4 @ ~96dpi */
+  height: 1123px !important;  /* A4 @ ~96dpi */
+  overflow: hidden !important;
+}
+
+/* Safe padding so top banner/footers of pad never overlap.
+   Top বেশি, দুই পাশে কম রাখা হয়েছে per your screenshot. */
+.invoice-dark .invoice-inner{
+  padding: 130px 26px 88px 26px !important; /* top right bottom left */
+  color: #fff;
+}
+
+/* mobile */
+@media (max-width:900px){
+  .invoice-wrap{ width:100% !important; height:auto !important; }
+  .invoice-dark .invoice-inner{ padding: 90px 18px 70px 18px !important; }
+}
+
+/* print */
+@media print{
+  .invoice-wrap{
+    width: 794px !important;
+    height: 1123px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
+/* ==== INVOICE SCALE & MARGIN FIX ==== */
+
+/* Overall zoom-in for invoice content */
+.invoice-inner {
+  padding: 20px 15px 40px px !important; /* top/right/bottom/left */
+  transform: scale(1.08);                  /* enlarge about 8% */
+  transform-origin: top center;            /* zoom from top */
+}
+
+/* Reduce outer border spacing */
+.invoice-wrap {
+  border: none !important;                 /* no visible border */
+  width: 820px !important;                 /* slightly wider A4 */
+  min-height: 1123px;
+  margin: 0 auto;
+  box-shadow: none !important;             /* remove shadow wrap */
+}
+
+/* Make sure pad background covers fully */
+.invoice-pad-bg {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  opacity: 0.25;
+}
+
+/* Fine-tune when printing/exporting to PDF */
+@media print {
+  .invoice-inner {
+    transform: none !important;
+    padding: 72px 36px 72px 36px !important; /* balanced margins for A4 */
+  }
+  .invoice-wrap {
+    width: 794px !important;
+    height: 1123px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+
 
 .brand-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
 .brand-left{display:flex;align-items:center;gap:14px}
@@ -274,6 +379,13 @@ label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
 }
 
 
+/* === Make only 'Customer Information' title white-background === */
+.info-box .info-title {
+  background: #ffffff !important;   /* White background */
+  color: #000000 !important;        /* Black text */
+  border-bottom: 1px solid #000000; /* Optional thin separator line */
+}
+
 /* Force black text in Customer Information box */
 .info-box .info-grid,
 .info-box .info-grid div,
@@ -332,6 +444,9 @@ label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
   padding:16px;
   color:#111827;
 }
+
+
+
 
 
 /* ==== Signatures row (left) ==== */
@@ -599,10 +714,10 @@ label{ display:block; margin-bottom:6px; font-size:.85rem; color:var(--muted); }
   display:flex;align-items:center;justify-content:space-between;
   margin:6px 0 10px;
   padding:10px 12px;
-  background:#004b96;border:1px solid #000000;border-radius:10px;
+  background:#4ee906;border:1px solid #000000;border-radius:10px;
 }
 .price-title-left{color:#0f172a}
-.price-title-left span{color:#334155}
+.price-title-left span{color:#000000}
 
 /* tier badge on title bar */
 .tier-badge{
@@ -626,3 +741,187 @@ label{ display:block; margin-bottom:6px; font-size:.85rem; color:var(--muted); }
 .tier-chip.active{ border-color:#059669; box-shadow:0 0 0 3px rgba(5,150,105,.15); }
 
 
+/* ===== FIXES: visibility + spacing ===== */
+
+/* (A) white panel এর ভেতরে সব টেক্সটকে ডার্ক রাখো—.invoice-dark হলেও */
+.invoice-dark .invoice-panel{
+  color:#0f172a !important;          /* dark ink */
+  background:rgba(255,255,255,.96) !important;
+}
+/* সাব-এলিমেন্টগুলো প্যানেলের রঙই নিক */
+.invoice-dark .invoice-panel *{
+  color:inherit !important;
+}
+
+/* REMOVE THIS IF PRESENT */
+.invoice-dark .invoice-panel,
+.invoice-dark .invoice-panel *{
+  color: inherit;
+}
+
+
+/* (C) জুম দেওয়া অবস্থায় প্যাডিং টাইপো ফিক্স (px px → 15px) + একটু সাইড স্পেস */
+.invoice-inner{
+  padding: 20px 18px 40px 18px !important;   /* top/right/bottom/left */
+  transform: scale(1.08);
+  transform-origin: top center;
+}
+
+/* (D) A4 প্রিভিউ র‍্যাপার – সামান্য চওড়া, কিন্তু প্রিন্টে ঠিক A4 */
+.invoice-wrap{
+  border: none !important;
+  width: 820px !important;                    /* preview a bit wider */
+  min-height: 1123px;
+  margin: 0 auto;
+  box-shadow: none !important;
+}
+
+/* (E) প্রিন্ট/PDF-এ ব্যালেন্সড মার্জিন (জুম অফ) */
+@media print{
+  .invoice-inner{
+    transform: none !important;
+    padding: 72px 36px 72px 36px !important;
+  }
+  .invoice-wrap{
+    width: 794px !important;
+    height: 1123px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+
+
+/* (A) FIX: padding টাইপো (আগে ছিল: 40px px) + preview scale */
+.invoice-inner{
+  padding: 20px 18px 40px 18px !important; /* top right bottom left */
+  transform: scale(1.08);
+  transform-origin: top center;
+}
+
+/* (B) Preview-তে প্যানেল ও টেবিল সবসময় পড়ারযোগ্য ডার্ক টেক্সট */
+.preview-mode .invoice-panel{
+  background: rgba(255,255,255,.98) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,.08);
+  border-radius: 14px;
+}
+.preview-mode .invoice-panel *{
+  color: inherit !important; /* panel-এর রঙই ইনহেরিট হবে */
+}
+
+/* (C) Customer Information: শুধু শিরোনামটা সাদা ব্যাকগ্রাউন্ড + কালো টেক্সট */
+.preview-mode .info-box{
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #0f172a !important;
+  border-radius: 12px !important;
+}
+.preview-mode .info-box .info-title{
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+
+/* ===== FORCE PREVIEW VISIBLE (no scale, proper stacking) ===== */
+
+/* প্রিভিউতে কোনো zoom/transform নয় */
+.preview-mode .invoice-inner {
+  transform: none !important;
+  padding: 96px 42px 90px 42px !important;   /* নিরাপদ প্যাডিং */
+}
+
+/* প্যানেল/টেবিল সব দৃশ্যমান রাখো */
+.preview-mode .invoice-panel {
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: rgba(255,255,255,.96) !important;
+  color: #000000 !important;
+}
+
+/* ব্যাকগ্রাউন্ড PNG সবসময় নিচে থাকবে */
+.invoice-pad-bg {
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .22;               /* ইচ্ছেমতো */
+  z-index: 0 !important;
+}
+
+/* আসল কনটেন্ট সব সময় pad-এর উপর থাকবে */
+.invoice-inner {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* ফিক্সড A4 হাইটের কারণে কাটছিল—প্রিভিউতে height:auto রাখো */
+.preview-mode.invoice-wrap {
+  height: auto !important;
+  min-height: 1123px;         /* চাইলে রাখো */
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* .invoice-dark এর আগের কনফ্লিক্টিং রুল নিষ্ক্রিয় করো */
+.invoice-dark .invoice-panel,
+.invoice-dark .invoice-panel * {
+  color: inherit;  /* এখানে কোনো 'white !important' বা অন্য রুল থাকলে সরাও */
+}
+
+/* শুধু Customer Information title সাদা ব্যাকগ্রাউন্ড থাকবে */
+.preview-mode .info-box .info-title {
+  background: #d46c6c !important;
+  color: #000 !important;
+  border-bottom: 1px solid #000 !important;
+}
+
+
+/* ===== Make everything inside invoice a bit bigger (only invoice area) ===== */
+.invoice--bigger .price-title {
+  font-size: 15px;                 /* title bar text */
+  padding: 12px 14px;
+}
+
+.invoice--bigger .tier-badge{
+  font-size: 13px;
+  padding: 7px 12px;
+}
+
+.invoice--bigger .ref-left,
+.invoice--bigger .ref-right,
+.invoice--bigger .invoice-foot{
+  font-size: 14px;
+}
+
+/* Customer Information box text */
+.invoice--bigger .info-grid{
+  font-size: 14.5px;
+}
+
+/* Table: font-size & row height up */
+.invoice--bigger .table thead th{
+  font-size: 14.5px;
+  padding: 12px 14px;
+}
+.invoice--bigger .table td{
+  font-size: 14.5px;
+  padding: 12px 14px;              /* row height একটু বাড়ে */
+}
+
+/* Totals a bit more prominent */
+.invoice--bigger .total-big{
+  font-size: 18px;
+}
+
+/* Panel text base up a touch */
+.invoice--bigger .invoice-panel{
+  font-size: 15px;
+}
+
+/* Inner padding সামান্য টিউন, যাতে বড় কনটেন্টও ঠিকমতো বসে */
+.invoice--bigger .invoice-inner{
+  padding: 96px 46px 92px 46px !important; /* top right bottom left */
+}

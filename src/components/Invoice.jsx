@@ -1,4 +1,3 @@
-// src/components/Invoice.jsx
 import { forwardRef, useMemo } from "react";
 import { toBDT, bdtToWords, generateRef } from "../lib/calc.js";
 
@@ -10,7 +9,6 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
   const dateStr = new Intl.DateTimeFormat("en-GB", { day:"2-digit", month:"2-digit", year:"2-digit" }).format(orderDate);
   const refNo = useMemo(() => generateRef(), []);
 
-  // Adjusted unit prices (from PriceForm calculator)
   const unitModule = unitPrices?.unitModule ?? (model.modulePrice ?? 0) * mult;
   const unitCtrl   = unitPrices?.unitCtrl   ?? (items.controllerPrice ?? 0) * mult;
   const unitRC     = unitPrices?.unitRC     ?? (model.receivingCardPrice ?? 0) * mult;
@@ -39,21 +37,7 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
         </div>
       </div>
 
-      {/* Title + Tier badge with warranty */}
-      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 0 10px"}}>
-        <div style={{fontWeight:900, fontSize:"16px"}}>
-          {model.name} LED Display — {sizeStr}
-        </div>
-        <div
-          className={`tier-badge ${tier?.id || "gold"}`}
-          style={{fontWeight:800}}
-          title={`${tier?.label || "Gold"} • ${tier?.warrantyYears ?? 1} Year Warranty`}
-        >
-          {(tier?.label || "Gold")} • {(tier?.warrantyYears ?? 1)} Year Warranty
-        </div>
-      </div>
-
-      {/* Customer Box */}
+      {/* Customer box */}
       <div className="info-box">
         <div className="info-title">Customer Information</div>
         <div className="info-grid">
@@ -68,8 +52,22 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
         </div>
       </div>
 
-      {/* Table inside a light panel */}
+      {/* Invoice content panel */}
       <div className="invoice-panel">
+        {/* ✅ Title bar placed JUST ABOVE the table */}
+        <div className="price-title">
+          <div className="price-title-left">
+            <strong>{model.name} LED Display — {sizeStr}</strong>
+          </div>
+          <div
+            className={`tier-badge ${tier?.id || "gold"}`}
+            title={`${tier?.label || "Gold"} • ${(tier?.warrantyYears ?? 1)} Year Warranty`}
+          >
+            {(tier?.label || "Gold")} • {(tier?.warrantyYears ?? 1)} Year Warranty
+          </div>
+        </div>
+
+        {/* Table */}
         <table className="table">
           <thead>
             <tr>
