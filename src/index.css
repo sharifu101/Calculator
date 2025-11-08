@@ -22,12 +22,60 @@
 .badge{margin-left:auto;background:rgba(255,255,255,.16);padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:12.5px}
 
 /* ======= Page layout ======= */
-html,body,#root{height:100%}
-body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+html, body { height: 100%; margin: 0; padding: 0; } /* ⬅️ gutter remove */
+#root { height: 100%; }
+
+body{
+  margin: 0; /* safety */
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+}
+
 .app-shell{min-height:100%;padding:22px}
 .container-xxl{max-width:1200px;margin:auto;display:grid;gap:22px;grid-template-columns:1fr}
 @media (min-width:1024px){.container-xxl{grid-template-columns:1fr 1fr}}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:22px}
+
+.topbar{
+  position:sticky; top:0; z-index:50;
+  left:0; right:0; width:100%;          /* ⬅️ full-bleed */
+  background:linear-gradient(90deg,#0aa5a5,#059669);
+  color:#fff;
+  box-shadow:0 10px 30px rgba(2,6,23,.2);
+}
+
+
+
+
+/* ==== Topbar nav (Home link) ==== */
+.topbar-nav{
+  margin-left: auto;                 /* title-এর ডান দিকে ঠেলে দেবে */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* পিল-স্টাইল লিংক */
+.top-link{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.35);
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+  font-size:13px;
+  background:rgba(255,255,255,.12);
+  transition:.15s;
+}
+.top-link:hover{
+  background:rgba(255,255,255,.22);
+  border-color:rgba(255,255,255,.55);
+}
+
+
 
 /* ======= Section headings ======= */
 .card h3{font-weight:700;margin:12px 0 10px}
@@ -576,3 +624,5 @@ label{ display:block; margin-bottom:6px; font-size:.85rem; color:var(--muted); }
 .tier-chip .tier-note{ font-size:12px; color:#64748b; }
 .tier-chip:hover{ box-shadow:0 2px 10px rgba(2,6,23,.06); border-color:#dbe1ea; }
 .tier-chip.active{ border-color:#059669; box-shadow:0 0 0 3px rgba(5,150,105,.15); }
+
+

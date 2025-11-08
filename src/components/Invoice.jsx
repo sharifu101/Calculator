@@ -1,9 +1,10 @@
+// src/components/Invoice.jsx
 import { forwardRef, useMemo } from "react";
 import { toBDT, bdtToWords, generateRef } from "../lib/calc.js";
 
 const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Date() }, ref) {
   const { model, customer, display, items, tier } = snapshot;
-  const { totals, unitPrices } = calc; // totals we recomputed in PriceForm
+  const { totals, unitPrices } = calc;
   const mult = tier?.mult ?? 1;
 
   const dateStr = new Intl.DateTimeFormat("en-GB", { day:"2-digit", month:"2-digit", year:"2-digit" }).format(orderDate);
@@ -15,13 +16,12 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
   const unitRC     = unitPrices?.unitRC     ?? (model.receivingCardPrice ?? 0) * mult;
   const unitPS     = unitPrices?.unitPS     ?? (model.powerSupplyPrice ?? 0) * mult;
 
-  // Table rows (use recomputed totals)
   const rows = [
-    { sl:1, name:`Module: ${model.name} LED Display Module`, unit:"Pcs", qty:items.modulesQty, unitPrice:unitModule, total:totals.totalModules, brand:"Brand: —" },
-    { sl:2, name:`Controller: ${items.controllerId}`,        unit:"Pcs", qty:items.controllerQty, unitPrice:unitCtrl, total:totals.controllerTotal, brand:"Brand: —" },
-    { sl:3, name:`Receiving Card`,                           unit:"Pcs", qty:items.rcQty, unitPrice:unitRC, total:totals.totalRC, brand:"Brand: —" },
-    { sl:4, name:`Power Supply`,                             unit:"Pcs", qty:items.psQty, unitPrice:unitPS, total:totals.totalPS, brand:"Brand: —" },
-    ...(items.accessoriesTk>0 ? [{ sl:5, name:"Structure & Accessories", unit:"Lot", qty:1, unitPrice:items.accessoriesTk, total:items.accessoriesTk, brand:"" }] : []),
+    { sl:1, name:`Module: ${model.name} LED Display Module`, unit:"Pcs", qty:items.modulesQty,   unitPrice:unitModule, total:totals.totalModules,   brand:"Brand: —" },
+    { sl:2, name:`Controller: ${items.controllerId}`,        unit:"Pcs", qty:items.controllerQty, unitPrice:unitCtrl,   total:totals.controllerTotal, brand:"Brand: —" },
+    { sl:3, name:`Receiving Card`,                           unit:"Pcs", qty:items.rcQty,        unitPrice:unitRC,     total:totals.totalRC,        brand:"Brand: —" },
+    { sl:4, name:`Power Supply`,                             unit:"Pcs", qty:items.psQty,        unitPrice:unitPS,     total:totals.totalPS,        brand:"Brand: —" },
+    ...(items.accessoriesTk>0 ? [{ sl:5, name:"Structure & Accessories", unit:"Lot", qty:1, unitPrice:unitPrices?.accessories ?? items.accessoriesTk, total:unitPrices?.accessories ?? items.accessoriesTk, brand:"" }] : []),
     { sl:(items.accessoriesTk>0?6:5), name:"Installation, Testing & Commissioning", unit:"Make", qty:1, unitPrice:totals.installation, total:totals.installation, brand:"" },
   ];
 
@@ -29,7 +29,7 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
 
   return (
     <div ref={ref}>
-      {/* Ref + Date (note removed) */}
+      {/* Ref + Date */}
       <div className="ref-row">
         <div className="ref-left">
           <strong>Ref:</strong> {refNo}
@@ -39,20 +39,17 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
         </div>
       </div>
 
-      {/* Title above the table */}
+      {/* Title + Tier badge with warranty */}
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 0 10px"}}>
         <div style={{fontWeight:900, fontSize:"16px"}}>
           {model.name} LED Display — {sizeStr}
         </div>
-        <div style={{
-          border:"1px solid #d1fae5",
-          background:"#ecfdf5",
-          color:"#065f46",
-          padding:"6px 10px",
-          borderRadius:10,
-          fontWeight:800
-        }}>
-          {tier?.label || "Gold"}
+        <div
+          className={`tier-badge ${tier?.id || "gold"}`}
+          style={{fontWeight:800}}
+          title={`${tier?.label || "Gold"} • ${tier?.warrantyYears ?? 1} Year Warranty`}
+        >
+          {(tier?.label || "Gold")} • {(tier?.warrantyYears ?? 1)} Year Warranty
         </div>
       </div>
 
@@ -67,10 +64,11 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
           <div><span>Mobile Number:</span> {customer.mobile || "—"}</div>
           <div><span>Pixel Pitch:</span> {model.name}</div>
           <div><span>Display Size (sft):</span> {display.sft || "—"}</div>
+          <div><span>Warranty:</span> {(tier?.warrantyYears ?? 1)} Year(s)</div>
         </div>
       </div>
 
-      {/* Table inside a light panel for readability */}
+      {/* Table inside a light panel */}
       <div className="invoice-panel">
         <table className="table">
           <thead>
@@ -117,9 +115,6 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
           <img src="/seal.png" alt="Seal" className="seal-img" />
           <div className="sig-block">
             <img src="/signature.png" alt="Signature" className="sign-img" />
-            {/* <div className="sign-caption">
-              Md. Minhazul Islam<br/>Assistant Engineer<br/>Mugnee Multiple
-            </div> */}
           </div>
         </div>
       </div>

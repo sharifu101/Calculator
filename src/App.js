@@ -10,13 +10,22 @@ export default function App() {
   const [calc, setCalc] = useState(null);
   const invoiceRef = useRef(null);
 
-  return (
+ return (
     <>
       {/* Topbar / Header */}
       <header className="topbar">
         <div className="inner">
           <img src="/logo.png" alt="Mugnee" className="topbar-logo" />
           <div className="topbar-title">MUGNEE MULTIPLE LIMITED — Price Builder</div>
+
+          {/* ⬇️ নতুন ন্যাভ */}
+          <nav className="topbar-nav">
+            <a href="https://www.mugnee.com/" className="top-link">Home</a>
+            {/* চাইলে নতুন ট্যাবে খুলতে:
+            <a href="https://www.mugnee.com/" className="top-link" target="_blank" rel="noopener noreferrer">Home</a>
+            */}
+          </nav>
+
           <div className="topbar-right">
             <span className="badge">LED Display • Controller • Install</span>
           </div>
