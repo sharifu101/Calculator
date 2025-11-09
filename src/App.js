@@ -87,7 +87,7 @@ export default function App() {
                 Fill the form and click <b>Calculate</b> to preview the invoice.
               </div>
             ) : (
-              <div id="invoice-root" className="invoice-wrap invoice-dark preview-mode invoice--bigger">
+              <div id="invoice-root" className="invoice-wrap invoice-dark preview-mode">
   <img src="/Mugnee_Invoice.png" className="invoice-pad-bg pad-bg" alt="" />
   <div className="invoice-inner">
     {/* light panel for readability */}

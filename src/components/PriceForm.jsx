@@ -1,77 +1,188 @@
-// src/components/PriceForm.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CONTROLLERS } from "../data/models.js"; // MODELS লাগবে না এখন
+import { MODEL_GROUPS, CONTROLLERS, POWER_SUPPLY_PRICE } from "../data/models.js";
+import { toBDT, calcAll } from "../lib/calc.js";
 
-/* ===== Indoor/Outdoor model lists (placeholder prices now) =====
-   modulePrice / receivingCardPrice / powerSupplyPrice — পরের ধাপে আপডেট করবে */
-const MODEL_GROUPS = {
+/* ===== Price tiers (display + warranty only) ===== */
+const PRICE_TIERS = [
+  { id: "gold",     label: "Gold",     note: "Standard",     warrantyYears: 1 },
+  { id: "platinum", label: "Platinum", note: "≈6% premium",  warrantyYears: 2 },
+  { id: "diamond",  label: "Diamond",  note: "≈12% premium", warrantyYears: 3 },
+];
+
+/* ===== Module physical size (in feet) =====
+   320x160 mm => 1.0499 ft x 0.5249 ft
+   192x192 mm => 0.6299 ft x 0.6299 ft
+*/
+const FT_320 = 1.0499;
+const FT_160 = 0.5249;
+const FT_192 = 0.6299;
+
+function moduleFootprintFt(modelIdOrName) {
+  const id = (modelIdOrName || "").toLowerCase();
+  const isP3 = id.includes("p3") && !id.includes("3.9");
+  const isP6 = id.includes("p6") && !id.includes("6.6"); // ignore 6.67 edge
+  if (isP3 || isP6) return { w: FT_192, h: FT_192 };
+  return { w: FT_320, h: FT_160 };
+}
+
+const roundInt = (x) => Math.max(1, Math.round(Number(x) || 0));
+
+/* ===== Receiving Card auto-pick by rule =====
+   - Indoor P1.25 → R732 (2900)
+   - Others       → R712 (2200)
+*/
+function pickReceivingCard(dispType, modelName) {
+  const isIndoor = dispType === "indoor";
+  const isP125 = (modelName || "").toLowerCase().includes("p1.25");
+  if (isIndoor && isP125) return { id: "R732", label: "Receiving Card R732", unitPrice: 2900 };
+  return { id: "R712", label: "Receiving Card R712", unitPrice: 2200 };
+}
+
+/* ===== Capacity maps (modules per card/psu) ===== */
+const RC_CAPACITY = {
+  indoor: {
+    "1.25": 4, "1.53": 4, "1.667": 6, "1.86": 8, "2": 10, "2.5": 11,
+    "3": 12, "3.076": 16, "4": 20, "5": 24,
+  },
+  outdoor: {
+    "2.5": 10, "3": 20, "3.076": 16, "4": 20, "5": 24,
+    "6": 36, "6.7": 30, "8": 40, "10": 40,
+  },
+};
+
+const PSU_CAPACITY = {
+  indoor: {
+    "1.25": 4, "1.53": 5, "1.667": 5, "1.86": 5,
+    "2": 6,   "2.5": 6, "3": 6, "4": 6, "5": 6,
+  },
+  outdoor: {
+    "2.5": 4, "3": 5, "3.076": 5, "4": 6, "5": 6,
+    "6": 6, "6.67": 6, "6.7": 6, "8": 6, "10": 6,
+  },
+};
+
+// ---- helpers: capacity lookups by parsed pitch ----
+function getRcCapacity(dispType, modelName = "") {
+  const p = parsePitch(modelName);
+  return RC_CAPACITY[dispType]?.[p] ?? 12; // sensible fallback
+}
+
+function getPsuCapacity(dispType, modelName = "") {
+  const p = parsePitch(modelName);
+  return PSU_CAPACITY[dispType]?.[p] ?? 6; // sensible fallback
+}
+
+
+function parsePitch(modelName = "") {
+  const m = (modelName.match(/P(\d+(?:\.\d+)?)/i) || [])[1];
+  return m || "";
+}
+function parsePitchNum(modelName = "") {
+  const m = modelName.match(/P(\d+(?:\.\d+)?)/i);
+  return m ? parseFloat(m[1]) : NaN;
+}
+
+/* ===== Controller caps (total pixels) =====
+   Outdoor - A3L-655,360, A5L-1,300,000, A6L-2,600,000
+   Indoor  - VP210H-1,300,000, VP410H-2,600,000, VP630-3,900,000, VP830-8,200,000
+*/
+const CTRL_CAP = {
   indoor: [
-    { id: "in-p1_25",   name: "P1.25",   modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p1_53",   name: "P1.53",   modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p1_667",  name: "P1.667",  modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p1_88",   name: "P1.88",   modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p2_5",    name: "P2.5",    modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p3",      name: "P3",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p3_076",  name: "P3.076",  modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p4",      name: "P4",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "in-p5",      name: "P5",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
+    { id: "VP210H", cap: 1300000 },
+    { id: "VP410H", cap: 2600000 },
+    { id: "VP630",  cap: 3900000 },
+    { id: "VP830",  cap: 8200000 },
   ],
   outdoor: [
-    { id: "out-p2_5",   name: "P2.5",    modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p3",     name: "P3",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p3_076", name: "P3.076",  modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p4",     name: "P4",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p5",     name: "P5",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p6",     name: "P6",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p6_67",  name: "P6.67",   modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p8",     name: "P8",      modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
-    { id: "out-p10",    name: "P10",     modulePrice: 0, receivingCardPrice: 0, powerSupplyPrice: 0 },
+    { id: "A3L", cap: 655360 },
+    { id: "A5L", cap: 1300000 },
+    { id: "A6L", cap: 2600000 },
   ],
 };
 
-/* ===== Price tiers (multiplier + warranty) ===== */
-const PRICE_TIERS = [
-  { id: "gold",     label: "Gold",     mult: 1.00, note: "Standard",     warrantyYears: 1 },
-  { id: "platinum", label: "Platinum", mult: 1.06, note: "≈6% premium",  warrantyYears: 2 },
-  { id: "diamond",  label: "Diamond",  mult: 1.12, note: "≈12% premium", warrantyYears: 3 },
-];
+/* ===== PSU model pick (label only) =====
+   - Indoor: সব pitch → 5V 40A
+   - Outdoor: P2.5–P4 → 5V 60A, P5+ → 5V 40A
+*/
+function pickPSUModel(dispType, modelName) {
+  if (dispType === "indoor") return { model: "5V 40A" };
+  const p = parsePitchNum(modelName);
+  if (!isNaN(p) && p <= 4) return { model: "5V 60A" };
+  return { model: "5V 40A" };
+}
 
-/* ===== টিয়ার-অ্যাডজাস্টেড টোটাল ক্যালকুলেটর ===== */
-function calcTotalsWithTier(snapshot){
-  const { model, items, install, display, tier } = snapshot;
-  const m = tier?.mult ?? 1;
+/* Pitch/grid → total pixels */
+function gridAndPixels(modelIdOrName, widthFt, heightFt) {
+  const pitch = parsePitchNum(modelIdOrName); // mm
+  if (!pitch || isNaN(pitch) || pitch <= 0) {
+    return { across: 0, down: 0, modPxW: 0, modPxH: 0, totalPxW: 0, totalPxH: 0, totalPixels: 0 };
+  }
 
-  const unitModule = (model.modulePrice ?? 0) * m;
-  const unitCtrl   = (items.controllerPrice ?? 0) * m;
-  const unitRC     = (model.receivingCardPrice ?? 0) * m;
-  const unitPS     = (model.powerSupplyPrice ?? 0) * m;
+  const id = (modelIdOrName || "").toLowerCase();
+  const isP3 = id.includes("p3") && !id.includes("3.9");
+  const isP6 = id.includes("p6") && !id.includes("6.6");
+  const use192 = (isP3 || isP6);
 
-  const totalModules    = (items.modulesQty    ?? 0) * unitModule;
-  const controllerTotal = (items.controllerQty ?? 0) * unitCtrl;
-  const totalRC         = (items.rcQty         ?? 0) * unitRC;
-  const totalPS         = (items.psQty         ?? 0) * unitPS;
+  // module physical (mm)
+  const mmW = use192 ? 192 : 320;
+  const mmH = use192 ? 192 : 160;
 
-  // accessories টিয়ারে ধরতে চাইলে: const accessories = (items.accessoriesTk ?? 0) * m;
-  const accessories = items.accessoriesTk ?? 0;
+  // pixels per module
+  const modPxW = Math.round(mmW / pitch);
+  const modPxH = Math.round(mmH / pitch);
 
-  const subTotal = totalModules + controllerTotal + totalRC + totalPS + accessories;
+  // module grid (same rounding scheme used elsewhere)
+  const fp = moduleFootprintFt(modelIdOrName);
+  const across = roundInt((parseFloat(widthFt)  || 0) / fp.w);
+  const down   = roundInt((parseFloat(heightFt) || 0) / fp.h);
 
-  const installation = install.installIsPercent
-    ? Math.round(subTotal * ((install.installValue ?? 0) / 100))
-    : (install.installValue ?? 0);
+  const totalPxW = across * modPxW;
+  const totalPxH = down   * modPxH;
+  const totalPixels = totalPxW * totalPxH;
 
-  const grandTotal = subTotal + installation;
+  return { across, down, modPxW, modPxH, totalPxW, totalPxH, totalPixels };
+}
 
-  return {
-    totalModules, controllerTotal, totalRC, totalPS,
-    subTotal, installation, grandTotal,
-    unitPrices: { unitModule, unitCtrl, unitRC, unitPS, accessories },
-    meta: { sft: display?.sft }
-  };
+/* Pick controller by pixels & type (smallest that FITS; qty = ceil) */
+function pickControllerByPixels(dispType, totalPixels) {
+  const list = CTRL_CAP[dispType] || [];
+  if (!totalPixels || !list.length) return null;
+  // তুমি যেভাবে বলেছ: cap-এর চেয়ে বেশি হলে ওই model কাজ করবে না → next one
+  const fit = list.find(c => totalPixels <= c.cap) || list[list.length - 1];
+  const qty = Math.max(1, Math.ceil(totalPixels / fit.cap));
+  return { id: fit.id, cap: fit.cap, qty };
+}
+
+/* ===== helpers to fetch prices from CONTROLLERS ===== */
+function controllerPriceById(id) {
+  const c = CONTROLLERS.find(x => x.id === id);
+  return c ? (c.price || 0) : 0;
+}
+
+/* ===== Totals builder (uses calcAll) ===== */
+function buildTotalsForCalc({ snapshot, autoModulesQty, moduleUnitPrice, rcUnitPrice }) {
+  const { items, install, display } = snapshot;
+
+  return calcAll({
+    modulesQty: autoModulesQty,
+    rcQty: items.rcQty ?? 0,
+    psQty: items.psQty ?? 0,
+
+    controllerQty: items.controllerQty ?? 0,
+    controllerPrice: items.controllerPrice ?? 0,
+
+    unitModule: moduleUnitPrice,
+    unitRC: rcUnitPrice,
+    unitPS: POWER_SUPPLY_PRICE,
+
+    accessoriesTk: items.accessoriesTk ?? 0,
+    installIsPercent: install.installIsPercent,
+    installValue: install.installValue,
+    sft: display?.sft,
+  });
 }
 
 export default function PriceForm({ onChange, onCalculated }) {
-  /* === NEW: display type (indoor/outdoor) === */
   const [dispType, setDispType] = useState("indoor");
   const modelsForType = MODEL_GROUPS[dispType];
 
@@ -83,7 +194,6 @@ export default function PriceForm({ onChange, onCalculated }) {
     [modelId, dispType]
   );
 
-  // Controller তালিকা
   const [controllerId, setControllerId] = useState(CONTROLLERS[0]?.id);
   const selectedController = useMemo(
     () => CONTROLLERS.find(c => c.id === controllerId) || CONTROLLERS[0],
@@ -94,8 +204,7 @@ export default function PriceForm({ onChange, onCalculated }) {
   const [customer, setCustomer] = useState({ name: "", company: "", address: "", mobile: "" });
   const [display, setDisplay] = useState({ widthFt: "", heightFt: "", sft: "" });
 
-  // Quantities
-  const [modulesQty, setModulesQty] = useState(100);
+  // Quantities (rc & ps default; will auto-sync)
   const [rcQty, setRcQty] = useState(10);
   const [psQty, setPsQty] = useState(17);
   const [controllerQty, setControllerQty] = useState(1);
@@ -111,59 +220,127 @@ export default function PriceForm({ onChange, onCalculated }) {
   const [tierId, setTierId] = useState("gold");
   const hasCalculatedRef = useRef(false);
 
-  // Type পাল্টালে: প্রথম মডেল সিলেক্ট + (চাইলে) কন্ট্রোলার রিসেট
+  // switch type -> first model
   useEffect(() => {
     const first = MODEL_GROUPS[dispType][0];
     setModelId(first.id);
-    // চাইলে specific controller সেট করতে পারো; আপাতত ডিফল্ট রেখেছি
-    // setControllerId(CONTROLLERS[0]?.id);
   }, [dispType]);
 
   // Auto-calc area (sft)
   useEffect(() => {
     const w = parseFloat(display.widthFt);
     const h = parseFloat(display.heightFt);
-    if (!isNaN(w) && !isNaN(h)) {
+    if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
       const area = (w * h).toFixed(2);
       setDisplay(d => ({ ...d, sft: area }));
     }
   }, [display.widthFt, display.heightFt]);
 
+  // Auto modules from ft → pcs (round, not ceil)
+  const autoModulesQty = useMemo(() => {
+    const w = parseFloat(display.widthFt);
+    const h = parseFloat(display.heightFt);
+    if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) return 0;
+
+    const fp = moduleFootprintFt(model.id || model.name);
+    const across = roundInt(w / fp.w);
+    const down   = roundInt(h / fp.h);
+    return across * down;
+  }, [display.widthFt, display.heightFt, model]);
+
+  // Tier-based module unit price
+  const moduleUnitPrice = useMemo(() => {
+    const p = model?.prices || {};
+    return p[tierId] ?? 0;
+  }, [model, tierId]);
+
+  // Receiving card pick (model-based)
+  const rcPicked = useMemo(
+    () => pickReceivingCard(dispType, model?.name || ""),
+    [dispType, model]
+  );
+
+  // ===== Auto RC/PS from capacity tables =====
+  const autoRcQty = useMemo(() => {
+    const cap = getRcCapacity(dispType, model.name);
+    return cap > 0 ? Math.ceil((autoModulesQty || 0) / cap) : 0;
+  }, [dispType, model, autoModulesQty]);
+
+  const autoPsQty = useMemo(() => {
+    const cap = getPsuCapacity(dispType, model.name);
+    return cap > 0 ? Math.ceil((autoModulesQty || 0) / cap) : 0;
+  }, [dispType, model, autoModulesQty]);
+
+  // keep rc/ps in sync with auto when size/model/type changes
+  useEffect(() => { setRcQty(autoRcQty); },
+    [autoRcQty, dispType, modelId, display.widthFt, display.heightFt]);
+  useEffect(() => { setPsQty(autoPsQty); },
+    [autoPsQty, dispType, modelId, display.widthFt, display.heightFt]);
+
+  // ===== Total pixels & auto controller pick =====
+  const grid = useMemo(
+    () => gridAndPixels(model.id || model.name, display.widthFt, display.heightFt),
+    [model, display.widthFt, display.heightFt]
+  );
+  const totalPixels = grid.totalPixels;
+
+  const autoController = useMemo(
+    () => pickControllerByPixels(dispType, totalPixels),
+    [dispType, totalPixels]
+  );
+
+  // apply auto controller selection (id + qty + price)
+  useEffect(() => {
+    if (!autoController) return;
+    setControllerId(autoController.id);
+    setControllerQty(autoController.qty);
+  }, [autoController]);
+
+  // PSU model label (for invoice brand column)
+  const psuPicked = useMemo(
+    () => pickPSUModel(dispType, model?.name || ""),
+    [dispType, model]
+  );
+
   const snapshot = useMemo(() => ({
-    model: {
-      ...model,
-      name: `${model.name} ${dispType === "indoor" ? "(Indoor)" : "(Outdoor)"}`
-    },
+    model: { ...model, name: `${model.name} ${dispType === "indoor" ? "(Indoor)" : "(Outdoor)"}` },
     customer,
     display,
     items: {
-      modulesQty,
+      modulesQty: autoModulesQty,
       rcQty,
       psQty,
       controllerId,
       controllerQty,
-      controllerPrice: selectedController?.price ?? 0,
+      controllerPrice: controllerPriceById(controllerId), // <-- price auto from selected id
       accessoriesTk,
+      receivingPicked: rcPicked,
+      psuPicked, // <-- for invoice display
+      capacity: {
+        rcModulesPerCard: getRcCapacity(dispType, model?.name || ""),
+        psModulesPerUnit: getPsuCapacity(dispType, model?.name || ""),
+      },
     },
     install: { installIsPercent, installValue },
     tier: PRICE_TIERS.find(t => t.id === tierId) || PRICE_TIERS[0],
   }), [
     model, dispType, customer, display,
-    modulesQty, rcQty, psQty,
-    controllerId, controllerQty, selectedController,
-    accessoriesTk, installIsPercent, installValue, tierId
+    autoModulesQty, rcQty, psQty,
+    controllerId, controllerQty,
+    accessoriesTk, rcPicked, psuPicked,
+    installIsPercent, installValue, tierId
   ]);
 
   useEffect(() => onChange?.(snapshot), [snapshot, onChange]);
 
   const computeAndSend = () => {
-    // raw calc রাখলাম (future use), তবে finals আমরা টিয়ার-অ্যাডজাস্টেড দিয়েই চালাই
-    const tierTotals = calcTotalsWithTier(snapshot);
-    const finalResult = {
-      totals: tierTotals,
-      unitPrices: tierTotals.unitPrices
-    };
-    onCalculated?.(finalResult, snapshot);
+    const result = buildTotalsForCalc({
+      snapshot,
+      autoModulesQty,
+      moduleUnitPrice,
+      rcUnitPrice: rcPicked.unitPrice
+    });
+    onCalculated?.(result, snapshot);
   };
 
   const handleCalculate = (e) => {
@@ -172,15 +349,18 @@ export default function PriceForm({ onChange, onCalculated }) {
     computeAndSend();
   };
 
-  // টিয়ার বদলালে অটো-রিক্যালক (1 বার হলেও Calculate হওয়ার পর)
+  // tier/size/model/qty change → auto recalc after first calculate
   useEffect(() => {
     if (hasCalculatedRef.current) computeAndSend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tierId]);
+  }, [
+    tierId, rcPicked, moduleUnitPrice, autoModulesQty,
+    rcQty, psQty, controllerQty, controllerId
+  ]);
 
   return (
     <form onSubmit={handleCalculate} className="form-grid">
-      {/* === NEW: Display Type === */}
+      {/* === Display Type === */}
       <section>
         <h3>Display Type</h3>
         <div className="inline">
@@ -228,6 +408,7 @@ export default function PriceForm({ onChange, onCalculated }) {
               className="input"
               value={display.widthFt}
               onChange={e => setDisplay(d => ({ ...d, widthFt: e.target.value }))}
+              placeholder="e.g. 16"
             />
           </label>
           <label>
@@ -236,6 +417,7 @@ export default function PriceForm({ onChange, onCalculated }) {
               className="input"
               value={display.heightFt}
               onChange={e => setDisplay(d => ({ ...d, heightFt: e.target.value }))}
+              placeholder="e.g. 9"
             />
           </label>
           <label>
@@ -263,15 +445,65 @@ export default function PriceForm({ onChange, onCalculated }) {
             </button>
           ))}
         </div>
+
+        {/* Auto-computed preview */}
+        <div className="form-row" style={{ marginTop: 10 }}>
+          <label>
+            Modules (auto)
+            <input className="input" value={autoModulesQty || 0} readOnly />
+          </label>
+          <label>
+            Module Unit Price (Tk)
+            <input className="input" value={moduleUnitPrice ? toBDT(moduleUnitPrice) : "—"} readOnly />
+          </label>
+          <label>
+            Receiving Card (auto)
+            <input className="input" value={`${rcPicked.label} — ৳${rcPicked.unitPrice}`} readOnly />
+          </label>
+        </div>
       </section>
 
       {/* Quantities */}
       <section>
         <h3>Quantities</h3>
         <div className="form-row">
-          <NumberField label="Modules (pcs)" value={modulesQty} setValue={setModulesQty} />
-          <NumberField label="Receiving Cards (pcs)" value={rcQty} setValue={setRcQty} />
-          <NumberField label="Power Supplies (pcs)" value={psQty} setValue={setPsQty} />
+          <label>
+            Receiving Cards (pcs)
+            <span style={{fontSize:12, color:"#64748b"}}>
+              auto: {autoRcQty} (cap: {(() => {
+                const p = parsePitch(model?.name || ""); return RC_CAPACITY[dispType]?.[p] ?? 12;
+              })()} modules/RC)
+            </span>
+            <input
+              className="input"
+              type="number"
+              value={rcQty}
+              onChange={e => setRcQty(parseFloat(e.target.value || 0))}
+            />
+          </label>
+          <label>
+            Power Supplies (pcs)
+            <span style={{fontSize:12, color:"#64748b"}}>
+              auto: {autoPsQty} (cap: {(() => {
+                const p = parsePitch(model?.name || ""); return PSU_CAPACITY[dispType]?.[p] ?? 6;
+              })()} modules/PSU) • {psuPicked.model}
+            </span>
+            <input
+              className="input"
+              type="number"
+              value={psQty}
+              onChange={e => setPsQty(parseFloat(e.target.value || 0))}
+            />
+          </label>
+          <label>
+            Controller Qty
+            <input
+              className="input"
+              type="number"
+              value={controllerQty}
+              onChange={e => setControllerQty(parseFloat(e.target.value || 0))}
+            />
+          </label>
         </div>
       </section>
 
@@ -286,14 +518,18 @@ export default function PriceForm({ onChange, onCalculated }) {
               value={controllerId}
               onChange={e => setControllerId(e.target.value)}
             >
-              {CONTROLLERS.map(c => (
+              {CONTROLLERS.filter(c => c.kind !== "receiving").map(c => (
                 <option key={c.id} value={c.id}>
                   {c.label} — ৳{c.price.toLocaleString("en-BD")}
                 </option>
               ))}
             </select>
+            {autoController && (
+              <div className="hint" style={{fontSize:12, color:"#64748b"}}>
+                Suggested: {autoController.id} (cap {autoController.cap.toLocaleString()} px) • Qty {autoController.qty}
+              </div>
+            )}
           </label>
-          <NumberField label="Controller Qty" value={controllerQty} setValue={setControllerQty} />
           <label>
             Accessories / Cabinet (Tk)
             <input
@@ -353,20 +589,6 @@ export default function PriceForm({ onChange, onCalculated }) {
         <button type="submit" className="btn btn-primary">Calculate</button>
       </div>
     </form>
-  );
-}
-
-function NumberField({ label, value, setValue }) {
-  return (
-    <label>
-      {label}
-      <input
-        className="input"
-        type="number"
-        value={value}
-        onChange={e => setValue(parseFloat(e.target.value || 0))}
-      />
-    </label>
   );
 }
 

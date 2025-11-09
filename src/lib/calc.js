@@ -8,7 +8,6 @@ export function toBDT(n) {
 export function bdtToWords(amount) {
   const units = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
   const tens  = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
-
   function two(n){ if(n<20) return units[n]; const t=Math.floor(n/10),u=n%10; return tens[t]+(u?(" "+units[u]):""); }
   function three(n){ const h=Math.floor(n/100),r=n%100; return (h? units[h]+" Hundred"+(r?" ":""):"") + (r? two(r):""); }
 
@@ -36,32 +35,70 @@ export function generateRef() {
   return `HO/MQ-${y}${m}${day}-${rnd}`;
 }
 
-/* ---------- your existing calculator ---------- */
+/* ---------- MODERNIZED calcAll (explicit unit prices) ---------- */
+/* Rules (as per latest):
+   - Accessories: base = max(accessoriesTk, 24000). (Subtotal-এ যোগ হবে)
+   - Installation: base min 24000 / % mode + scaling; BUT Grand Total-এ যোগ হবে না।
+   - If area (sft) > 60: accessories & installation—দুটোই স্কেল-আপ হবে (+15% প্রতি অতিরিক্ত 10 sft)
+   - Grand Total = Subtotal (installation exclude)
+*/
 export function calcAll({
-  model, modulesQty, rcQty, psQty,
-  controllerId, controllerQty, controllerPrice,
-  installIsPercent, installValue, accessoriesTk, sft,
+  modulesQty = 0, rcQty = 0, psQty = 0,
+  controllerQty = 0, controllerPrice = 0,
+  unitModule = 0, unitRC = 0, unitPS = 0,
+  accessoriesTk = 0,
+  installIsPercent = false, installValue = 0,
+  sft = 0,
 }) {
-  const moduleUnit = model?.modulePrice ?? 0;
-  const rcUnit = model?.receivingCardPrice ?? 0;
-  const psUnit = model?.powerSupplyPrice ?? 0;
-  const controllerTotal = (controllerPrice ?? 0) * (controllerQty ?? 0);
+  const totalModules    = modulesQty * unitModule;
+  const totalRC         = rcQty * unitRC;
+  const totalPS         = psQty * unitPS;
+  const controllerTotal = controllerQty * controllerPrice;
 
-  const totalModules = (modulesQty ?? 0) * moduleUnit;
-  const totalRC = (rcQty ?? 0) * rcUnit;
-  const totalPS = (psQty ?? 0) * psUnit;
+  // base of goods (without installation & accessories)
+  const goodsSubTotal = totalModules + totalRC + totalPS + controllerTotal;
 
-  const subTotal = totalModules + totalRC + totalPS + controllerTotal + (accessoriesTk ?? 0);
+  const area = parseFloat(sft) || 0;
 
-  const installation = installIsPercent ? subTotal * ((installValue ?? 0)/100) : (installValue ?? 0);
-  const grandTotal = subTotal + installation;
+  // Accessories (>= 24k)
+  let accTk = Math.max(accessoriesTk || 0, 24000);
+
+  // Installation (>=24k or % of goods) — কিন্তু গ্র্যান্ড টোটালে যোগ হবে না
+  let installTk = installIsPercent
+    ? Math.round(goodsSubTotal * ((installValue || 0) / 100))
+    : Math.max(installValue || 0, 24000);
+
+  // Scaling for >60 sft
+  if (area > 60) {
+    const steps = Math.floor((area - 60) / 10);
+    const extraFactor = 1 + 0.15 * steps;
+    accTk = Math.round(accTk * extraFactor);
+    installTk = Math.round(installTk * extraFactor);
+  }
+
+  // Subtotal includes accessories only
+  const subTotal = goodsSubTotal + accTk;
+  // Grand total = subtotal (installation excluded)
+  const grandTotal = subTotal;
 
   return {
     sft,
     totals: {
-      totalModules, totalRC, totalPS, controllerTotal,
-      accessories: accessoriesTk ?? 0,
-      installation, subTotal, grandTotal,
+      totalModules,
+      totalRC,
+      totalPS,
+      controllerTotal,
+      accessories: accTk,
+      installation: installTk,
+      subTotal,
+      grandTotal,
+    },
+    unitPrices: {
+      unitModule,
+      unitRC,
+      unitPS,
+      unitCtrl: controllerPrice,
+      accessories: accTk,
     },
   };
 }

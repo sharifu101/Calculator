@@ -925,3 +925,57 @@ label{ display:block; margin-bottom:6px; font-size:.85rem; color:var(--muted); }
 .invoice--bigger .invoice-inner{
   padding: 96px 46px 92px 46px !important; /* top right bottom left */
 }
+
+/* ===== EVEN BIGGER for PDF capture only ===== */
+.invoice--bigger-xl .price-title{font-size:16px;padding:14px 16px}
+.invoice--bigger-xl .tier-badge{font-size:13.5px;padding:8px 12px}
+
+.invoice--bigger-xl .ref-left,
+.invoice--bigger-xl .ref-right,
+.invoice--bigger-xl .invoice-foot{font-size:14.5px}
+
+.invoice--bigger-xl .info-grid{font-size:15px}
+
+.invoice--bigger-xl .invoice-panel{font-size:16px}
+
+.invoice--bigger-xl .table thead th{
+  font-size:15.5px;
+  padding:14px 16px;
+}
+.invoice--bigger-xl .table td{
+  font-size:15.5px;
+  padding:14px 16px;
+}
+.invoice--bigger-xl .total-big{font-size:19px}
+
+/* ভেতরের প্যাডিং সামান্য কমিয়ে কনটেন্টকে বেশি জায়গা দিই */
+.invoice--bigger-xl .invoice-inner{
+  padding: 90px 40px 88px 40px !important;
+}
+
+
+/* ================== ONLY FOR PDF EXPORT (controlled zoom) ================== */
+.invoice--pdf-scale .invoice-inner{
+  transform: scale(1.12);              /* ~12% bigger for readability */
+  transform-origin: top center;
+  padding: 84px 40px 80px 40px !important; /* balanced safe padding */
+}
+
+.invoice--pdf-scale .invoice-panel{ font-size: 15.5px; }
+.invoice--pdf-scale .info-grid{ font-size: 15px; }
+.invoice--pdf-scale .invoice-foot{ font-size: 14px; }
+
+.invoice--pdf-scale .table thead th{
+  font-size: 15.5px;
+  padding: 14px 16px;
+}
+.invoice--pdf-scale .table td{
+  font-size: 15.5px;
+  padding: 14px 16px;
+}
+.invoice--pdf-scale .total-big{ font-size: 19px; }
+
+/* Preview-এ যেন enlarge না লাগে */
+.preview-mode .invoice-inner{
+  transform: none !important;
+}
