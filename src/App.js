@@ -84,17 +84,17 @@ export default function App() {
               </div>
             ) : (
               <div id="invoice-root" className="invoice-wrap invoice-dark preview-mode">
-  {/* আগে শুধু invoice-pad-bg ছিল; এখন pad--contain যোগ হলো */}
-  <img src="/Mugnee_Invoice.png" className="invoice-pad-bg pad--contain" alt="" />
-  <div className="invoice-inner pad-safe">
-    <div className="invoice-panel">
-      <Invoice ref={invoiceRef} calc={calc} snapshot={snapshot} />
-    </div>
-  </div>
-</div>
-
+                {/* আগে শুধু invoice-pad-bg ছিল; এখন pad--contain যোগ হলো */}
+                <img src="/Mugnee_Invoice.png" className="invoice-pad-bg pad--contain" alt="" />
+                <div className="invoice-inner pad-safe">
+                  <div className="invoice-panel">
+                    <Invoice ref={invoiceRef} calc={calc} snapshot={snapshot} />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
+
         </div>
       </div>
     </>

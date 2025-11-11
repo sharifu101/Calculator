@@ -218,10 +218,11 @@ body{ line-height:1.6; }
 /* ==== INVOICE SCALE & MARGIN FIX (preview enlargement) ==== */
 /* NOTE: padding typo kept intentionally per original ("40px px") */
 .invoice-inner {
-  padding: 20px 15px 40px px !important; /* top/right/bottom/left */
-  transform: scale(1.08);                  /* enlarge about 8% */
-  transform-origin: top center;            /* zoom from top */
+  padding: 20px 15px 40px 18px !important; /* top/right/bottom/left */
+  transform: scale(1.08);
+  transform-origin: top center;
 }
+
 
 /* Wider preview wrapper (still A4 in print) */
 .invoice-wrap {
@@ -1254,32 +1255,30 @@ label{ display:block; margin-bottom:6px; font-size:.85rem; color:var(--muted); }
 /* ==================== PREVIEW SHRINK-TO-FIT (A4) ==================== */
 /* শুধু প্রিভিউ কলামের জন্য; PDF/print অপরিবর্তিত থাকবে */
 
+/* ==================== PREVIEW SHRINK-TO-FIT (A4) — SAFE ============= */
+/* No calc(… / px). Narrow container হলে fluid width ব্যবহার করি */
+
 .invoice-viewport{
-  /* এই ডিভটাই কন্টেইনার; এর চওড়া অনুযায়ী ভেতরের A4 স্কেল হবে */
-  container-type: inline-size;           /* enable container queries */
+  container-type: inline-size;
   width: 100%;
-  overflow: visible;                     /* যেন কাটা না যায় */
+  overflow: visible;
   position: relative;
 }
 
-/* বেস: A4 সাইজে রেন্ডার (আপনার বর্তমান রুল যেমন আছে তেমনই) */
+/* Base A4 preview when space allows */
 .invoice-viewport #invoice-root{
   width: 794px !important;
-  height: 1123px !important;
-  transform-origin: top left !important; /* স্কেল বাম-উপরে থেকে */
-  /* প্রিভিউতে কোনো স্কেল নয়; নিচে ছোট স্ক্রিনে স্কেল হবে */
+  min-height: 1123px !important;
+  height: auto !important;
   transform: none !important;
+  transform-origin: top left !important;
 }
 
-/* কন্টেইনার যদি 794px-এর চেয়ে সরু হয়, তখন স্বয়ংক্রিয় স্কেল */
+/* Container 794px-এর কম হলে, scale না করে fluid করে দাও */
 @container (max-width: 794px){
-  .invoice-viewport{
-    /* স্কেল অনুযায়ী ভিউপোর্টের উচ্চতা ঠিক করি (aspect ধরে) */
-    --s: calc(100cqw / 794px);           /* scale = containerWidth/794 */
-    height: calc(1123px * var(--s));
-  }
   .invoice-viewport #invoice-root{
-    transform: scale(var(--s)) !important;
+    width: 100% !important;
+    height: auto !important;
   }
 }
 
