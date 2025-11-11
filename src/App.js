@@ -10,7 +10,7 @@ export default function App() {
   const [calc, setCalc] = useState(null);
   const invoiceRef = useRef(null);
 
- return (
+  return (
     <>
       {/* Topbar / Header */}
       <header className="topbar">
@@ -18,12 +18,9 @@ export default function App() {
           <img src="/logo.png" alt="Mugnee" className="topbar-logo" />
           <div className="topbar-title">MUGNEE MULTIPLE LIMITED — Price Builder</div>
 
-          {/* ⬇️ নতুন ন্যাভ */}
+          {/* Nav */}
           <nav className="topbar-nav">
             <a href="https://www.mugnee.com/" className="top-link">Home</a>
-            {/* চাইলে নতুন ট্যাবে খুলতে:
-            <a href="https://www.mugnee.com/" className="top-link" target="_blank" rel="noopener noreferrer">Home</a>
-            */}
           </nav>
 
           <div className="topbar-right">
@@ -36,7 +33,7 @@ export default function App() {
         <div className="container-xxl">
           {/* Left: Form */}
           <div className="card">
-            <div className="brand-row" style={{marginBottom: 10}}>
+            <div className="brand-row" style={{ marginBottom: 10 }}>
               <div className="brand-left">
                 <img src="/logo.png" alt="Mugnee" className="brand-logo" />
                 <div>
@@ -57,27 +54,26 @@ export default function App() {
             />
 
             {calc && (
-  <div className="summary">
-    <div className="sum-card">
-      <div className="sum-label">Subtotal</div>
-      <div className="sum-value">{toBDT(calc.totals.subTotal)}</div>
-    </div>
-    <div className="sum-card">
-      <div className="sum-label">Installation</div>
-      <div className="sum-value">{toBDT(calc.totals.installation)}</div>
-    </div>
-    <div className="sum-card">
-      <div className="sum-label">Grand Total</div>
-      <div className="sum-value">{toBDT(calc.totals.grandTotal)}</div>
-    </div>
-  </div>
-)}
-
+              <div className="summary">
+                <div className="sum-card">
+                  <div className="sum-label">Subtotal</div>
+                  <div className="sum-value">{toBDT(calc.totals.subTotal)}</div>
+                </div>
+                <div className="sum-card">
+                  <div className="sum-label">Installation</div>
+                  <div className="sum-value">{toBDT(calc.totals.installation)}</div>
+                </div>
+                <div className="sum-card">
+                  <div className="sum-label">Grand Total</div>
+                  <div className="sum-value">{toBDT(calc.totals.grandTotal)}</div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Invoice + Download */}
           <div className="card">
-            <div className="inline" style={{justifyContent:"space-between", marginBottom: 8}}>
+            <div className="inline" style={{ justifyContent: "space-between", marginBottom: 8 }}>
               <h3>Invoice Preview</h3>
               <PDFButton targetId="invoice-root" filename="/Mugnee_Invoice.pdf" />
             </div>
@@ -88,9 +84,9 @@ export default function App() {
               </div>
             ) : (
               <div id="invoice-root" className="invoice-wrap invoice-dark preview-mode">
-  <img src="/Mugnee_Invoice.png" className="invoice-pad-bg pad-bg" alt="" />
-  <div className="invoice-inner">
-    {/* light panel for readability */}
+  {/* আগে শুধু invoice-pad-bg ছিল; এখন pad--contain যোগ হলো */}
+  <img src="/Mugnee_Invoice.png" className="invoice-pad-bg pad--contain" alt="" />
+  <div className="invoice-inner pad-safe">
     <div className="invoice-panel">
       <Invoice ref={invoiceRef} calc={calc} snapshot={snapshot} />
     </div>

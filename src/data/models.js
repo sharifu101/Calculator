@@ -34,7 +34,7 @@ export const CONTROLLERS = [
   // নোট: অটো-পিক রুল PriceForm-এ আছে (P1.25 indoor → R732; বাকিগুলো → R712)
   // এখানে শুধুমাত্র দামের সোর্স হিসেবে রাখলাম
   { id: "R712",    label: "Receiving Card R712",  price: 2200, kind: "receiving" },
-  { id: "R732",    label: "Receiving Card R732",  price: 2900, kind: "receiving" },
+  { id: "R732",    label: "Receiving Card R732",  price: 29000, kind: "receiving" },
 
   // Asynchronous
   { id: "A3L",     label: "Asynchronous A3L",     price: 9205 },

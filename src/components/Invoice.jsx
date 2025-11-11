@@ -1,3 +1,4 @@
+// src/components/Invoice.jsx
 import { forwardRef, useMemo } from "react";
 import { toBDT, bdtToWords, generateRef } from "../lib/calc.js";
 
@@ -5,7 +6,11 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
   const { model, customer, display, items, tier } = snapshot;
   const { totals, unitPrices } = calc;
 
-  const dateStr = new Intl.DateTimeFormat("en-GB", { day:"2-digit", month:"2-digit", year:"2-digit" }).format(orderDate);
+  const dateStr = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  }).format(orderDate);
   const refNo = useMemo(() => generateRef(), []);
 
   const unitModule = unitPrices?.unitModule ?? 0;
@@ -13,10 +18,10 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
   const unitRC     = unitPrices?.unitRC     ?? 0;
   const unitPS     = unitPrices?.unitPS     ?? 0;
 
-  const rcBrand = items?.receivingPicked?.id || "R712";
-  const rcCap = items?.capacity?.rcModulesPerCard;
-  const psCap = items?.capacity?.psModulesPerUnit;
-  const psuModel = items?.psuPicked?.model || "5V 40A";
+  const rcBrand   = items?.receivingPicked?.id || "R712";
+  const rcCap     = items?.capacity?.rcModulesPerCard;
+  const psCap     = items?.capacity?.psModulesPerUnit;
+  const psuModel  = items?.psuPicked?.model || "5V 40A";
 
   const rows = [
     { sl:1, name:`Module: ${model.name} LED Display Module`, unit:"Pcs", qty:items.modulesQty,   unitPrice:unitModule, total:totals.totalModules,   brand:"Brand: —" },
@@ -26,7 +31,6 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
     { sl:4, name:`Power Supply`,                             unit:"Pcs", qty:items.psQty,        unitPrice:unitPS,     total:totals.totalPS,
       brand: `${psuModel}${psCap ? ` • ${psCap} modules/PSU` : ""}` },
 
-    // Accessories row (qty=1)
     ...(totals.accessories ? [{
       sl:5, name:"Structure & Accessories", unit:"Lot", qty:1,
       unitPrice: unitPrices?.accessories ?? totals.accessories, total: totals.accessories, brand:""
@@ -40,7 +44,7 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
   return (
     <div ref={ref}>
       {/* Ref + Date */}
-      <div className="ref-row">
+      <div className="ref-row tidy">
         <div className="ref-left"><strong>Ref:</strong> {refNo}</div>
         <div className="ref-right"><strong>Date:</strong> {dateStr}</div>
       </div>
@@ -86,7 +90,7 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
             </tr>
           </thead>
           <tbody>
-            {rows.map(r=>(
+            {rows.map(r => (
               <tr key={r.sl}>
                 <td>{r.sl}</td>
                 <td>
@@ -116,7 +120,8 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
 
         <div className="in-words"><b>In Words:</b> {bdtToWords(totals.grandTotal)}</div>
 
-        <div className="signatures">
+        {/* ✅ seal/signature */}
+        <div className="signatures lift">
           <img src="/seal.png" alt="Seal" className="seal-img" />
           <div className="sig-block">
             <img src="/signature.png" alt="Signature" className="sign-img" />
@@ -124,7 +129,7 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
         </div>
       </div>
 
-      <div className="invoice-foot">36-37 (3rd Floor), Umesh Datta Road, Chawkbazar, Dhaka-1211</div>
+     
     </div>
   );
 });
