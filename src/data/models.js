@@ -15,7 +15,7 @@ export const MODEL_GROUPS = {
     { id: "out-p2_5",  name: "P2.5",   prices: { gold: 4568, platinum: 5600, diamond: 7688 } },
     { id: "out-p3",    name: "P3",     prices: { gold: 2618, platinum: 3237, diamond: 3627 } },
     { id: "out-p4",    name: "P4",     prices: { gold: 2503, platinum: 2939, diamond: 3214 } },
-    { id: "out-p5",    name: "P5",     prices: { gold: 2205, platinum: 2503, diamond: 3604 } },
+    { id: "out-p5",    name: "P5",     prices: { gold: 2300, platinum: 2800, diamond: 3300 } },
     { id: "out-p6",    name: "P6",     prices: { gold: 1860, platinum: 1998, diamond: 2227 } },
     { id: "out-p6_67", name: "P6.67",  prices: { gold: 2205, platinum: 2365, diamond: 2640 } },
     { id: "out-p8",    name: "P8",     prices: { gold: 1929, platinum: 2044, diamond: 2227 } },
@@ -34,24 +34,20 @@ export const CONTROLLERS = [
   // নোট: অটো-পিক রুল PriceForm-এ আছে (P1.25 indoor → R732; বাকিগুলো → R712)
   // এখানে শুধুমাত্র দামের সোর্স হিসেবে রাখলাম
   { id: "R712",    label: "Receiving Card R712",  price: 2200, kind: "receiving" },
-  { id: "R732",    label: "Receiving Card R732",  price: 29000, kind: "receiving" },
+  { id: "R732",    label: "Receiving Card R732",  price: 2900, kind: "receiving" },
 
   // Asynchronous
-  { id: "A3L",     label: "Asynchronous A3L",     price: 9205 },
-  { id: "A5L",     label: "Asynchronous A5L",     price: 25368 },
-  { id: "A6L",     label: "Asynchronous A6L",     price: 39396 },
+  { id: "A3L",     label: "Asynchronous A3L",     price: 17000 },
+  { id: "A5L",     label: "Asynchronous A5L",     price: 25370 },
+  { id: "A6L",     label: "Asynchronous A6L",     price: 39400 },
 
   // Synchronous (video processor)
-  { id: "D16",     label: "Controller D16",       price: 6136 },
-  { id: "C16L",    label: "Controller C16L",      price: 9540 },
+
   { id: "VP210H",  label: "Synchronous VP210H",   price: 22995 },
-  { id: "VP410H",  label: "Synchronous VP410H",   price: 27398 },
+  { id: "VP410H",  label: "Synchronous VP410H",   price: 27400 },
   { id: "VP630",   label: "Synchronous VP630",    price: 65940 },
   { id: "VP830",   label: "Synchronous VP830",    price: 90790 },
-  { id: "VP1240A", label: "Synchronous VP1240A",  price: 114845 },
-  { id: "VP1220S", label: "Synchronous VP1220S",  price: 85025 },
-  { id: "VP1620S", label: "Synchronous VP1620S",  price: 94965 },
-  { id: "VP1640A", label: "Synchronous VP1640A",  price: 129755 },
+  
 ];
 
 // Power supply (all models)

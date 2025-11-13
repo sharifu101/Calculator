@@ -60,10 +60,6 @@ export default function App() {
                   <div className="sum-value">{toBDT(calc.totals.subTotal)}</div>
                 </div>
                 <div className="sum-card">
-                  <div className="sum-label">Installation</div>
-                  <div className="sum-value">{toBDT(calc.totals.installation)}</div>
-                </div>
-                <div className="sum-card">
                   <div className="sum-label">Grand Total</div>
                   <div className="sum-value">{toBDT(calc.totals.grandTotal)}</div>
                 </div>
@@ -84,7 +80,6 @@ export default function App() {
               </div>
             ) : (
               <div id="invoice-root" className="invoice-wrap invoice-dark preview-mode">
-                {/* আগে শুধু invoice-pad-bg ছিল; এখন pad--contain যোগ হলো */}
                 <img src="/Mugnee_Invoice.png" className="invoice-pad-bg pad--contain" alt="" />
                 <div className="invoice-inner pad-safe">
                   <div className="invoice-panel">

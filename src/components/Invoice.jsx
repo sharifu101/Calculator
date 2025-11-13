@@ -18,28 +18,75 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
   const unitRC     = unitPrices?.unitRC     ?? 0;
   const unitPS     = unitPrices?.unitPS     ?? 0;
 
-  const rcBrand   = items?.receivingPicked?.id || "R712";
-  const rcCap     = items?.capacity?.rcModulesPerCard;
-  const psCap     = items?.capacity?.psModulesPerUnit;
-  const psuModel  = items?.psuPicked?.model || "5V 40A";
-
-  const rows = [
-    { sl:1, name:`Module: ${model.name} LED Display Module`, unit:"Pcs", qty:items.modulesQty,   unitPrice:unitModule, total:totals.totalModules,   brand:"Brand: —" },
-    { sl:2, name:`Controller: ${items.controllerId}`,        unit:"Pcs", qty:items.controllerQty, unitPrice:unitCtrl,   total:totals.controllerTotal, brand:"Brand: —" },
-    { sl:3, name:`Receiving Card`,                           unit:"Pcs", qty:items.rcQty,        unitPrice:unitRC,     total:totals.totalRC,
-      brand:`Model: ${rcBrand}${rcCap ? ` • ${rcCap} modules/RC` : ""}` },
-    { sl:4, name:`Power Supply`,                             unit:"Pcs", qty:items.psQty,        unitPrice:unitPS,     total:totals.totalPS,
-      brand: `${psuModel}${psCap ? ` • ${psCap} modules/PSU` : ""}` },
-
-    ...(totals.accessories ? [{
-      sl:5, name:"Structure & Accessories", unit:"Lot", qty:1,
-      unitPrice: unitPrices?.accessories ?? totals.accessories, total: totals.accessories, brand:""
-    }] : []),
-
-    { sl:(totals.accessories ? 6 : 5), name:"Installation, Testing & Commissioning", unit:"Make", qty:1, unitPrice:totals.installation, total:totals.installation, brand:"" },
-  ];
-
   const sizeStr = `${display.widthFt || "—"}ft × ${display.heightFt || "—"}ft`;
+
+  // ---- Dynamic rows (SL auto) ----
+  const rows = [];
+  let sl = 1;
+
+  // Module
+  rows.push({
+    sl: sl++,
+    name: `Module: ${model.name} LED Display Module`,
+    unit: "Pcs",
+    qty: items.modulesQty,
+    unitPrice: unitModule,
+    total: totals.totalModules,
+  });
+
+  // Controller – শুধু যখন qty>0 এবং id আছে
+  if (items.controllerQty > 0 && items.controllerId) {
+    rows.push({
+      sl: sl++,
+      name: `Controller: ${items.controllerId}`,
+      unit: "Pcs",
+      qty: items.controllerQty,
+      unitPrice: unitCtrl,
+      total: totals.controllerTotal,
+    });
+  }
+
+  // Receiving card
+  rows.push({
+    sl: sl++,
+    name: "Receiving Card",
+    unit: "Pcs",
+    qty: items.rcQty,
+    unitPrice: unitRC,
+    total: totals.totalRC,
+  });
+
+  // Power supply
+  rows.push({
+    sl: sl++,
+    name: "Power Supply",
+    unit: "Pcs",
+    qty: items.psQty,
+    unitPrice: unitPS,
+    total: totals.totalPS,
+  });
+
+  // Structure & Accessories (if any)
+  if (totals.accessories) {
+    rows.push({
+      sl: sl++,
+      name: "Structure & Accessories",
+      unit: "Lot",
+      qty: 1,
+      unitPrice: unitPrices?.accessories ?? totals.accessories,
+      total: totals.accessories,
+    });
+  }
+
+  // Installation
+  rows.push({
+    sl: sl++,
+    name: "Installation, Testing & Commissioning",
+    unit: "Make",
+    qty: 1,
+    unitPrice: totals.installation,
+    total: totals.installation,
+  });
 
   return (
     <div ref={ref}>
@@ -83,8 +130,8 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
             <tr>
               <th style={{width:60}}>SL.</th>
               <th>Item Name</th>
-              <th style={{width:80}}>Unit</th>
-              <th style={{width:100}} className="td-right">Quantity</th>
+              <th style={{width:80}} className="td-center">Unit</th>
+              <th style={{width:100}} className="td-center">Quantity</th>
               <th style={{width:140}} className="td-right">Unit Price (Taka)</th>
               <th style={{width:160}} className="td-right">Total Price (Taka)</th>
             </tr>
@@ -95,22 +142,19 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
                 <td>{r.sl}</td>
                 <td>
                   <div className="item-name">{r.name}</div>
-                  {r.brand && <div className="item-brand">{r.brand}</div>}
                 </td>
-                <td>{r.unit}</td>
-                <td className="td-right">{r.qty}</td>
+                <td className="td-center">{r.unit}</td>
+                <td className="td-center">{r.qty}</td>
                 <td className="td-right">{toBDT(r.unitPrice)}</td>
                 <td className="td-right">{toBDT(r.total)}</td>
               </tr>
             ))}
+
             <tr className="row-subtle">
               <td colSpan={5} className="td-right"><b>Subtotal</b></td>
               <td className="td-right"><b>{toBDT(totals.subTotal)}</b></td>
             </tr>
-            <tr className="row-subtle">
-              <td colSpan={5} className="td-right">Installation</td>
-              <td className="td-right">{toBDT(totals.installation)}</td>
-            </tr>
+
             <tr className="row-accent">
               <td colSpan={5} className="td-right total-big">Grand Total</td>
               <td className="td-right total-big">{toBDT(totals.grandTotal)}</td>
@@ -122,14 +166,13 @@ const Invoice = forwardRef(function Invoice({ calc, snapshot, orderDate = new Da
 
         {/* ✅ seal/signature */}
         <div className="signatures lift">
-          <img src="/seal.png" alt="Seal" className="seal-img" />
+          <img src="/seal.png" alt="Company Seal" className="seal-img" />
           <div className="sig-block">
-            <img src="/signature.png" alt="Signature" className="sign-img" />
+            <img src="/signature.png" alt="Authorized Signature" className="sign-img" />
+            <div className="sig-title">Authorized Signature</div>
           </div>
         </div>
       </div>
-
-     
     </div>
   );
 });

@@ -1,3 +1,4 @@
+// src/components/PriceForm.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MODEL_GROUPS, CONTROLLERS, POWER_SUPPLY_PRICE } from "../data/models.js";
 import { toBDT, calcAll } from "../lib/calc.js";
@@ -26,6 +27,56 @@ function moduleFootprintFt(modelIdOrName) {
 }
 
 const roundInt = (x) => Math.max(1, Math.round(Number(x) || 0));
+
+/* ===== Pitch parser ===== */
+function parsePitch(modelName = "") {
+  const m = (modelName.match(/P(\d+(?:\.\d+)?)/i) || [])[1];
+  return m || "";
+}
+function parsePitchNum(modelName = "") {
+  const m = modelName.match(/P(\d+(?:\.\d+)?)/i);
+  return m ? parseFloat(m[1]) : NaN;
+}
+
+/* ===== তোমার দেওয়া module pixel mapping =====
+Indoor: 
+P1.25 = 256x128
+P1.53 = 210x105
+P1.86 = 320x160
+P2   = 320x160
+P2.5 = 320x160
+P3   = 192x192
+
+Outdoor:
+P2.5  = 320x160
+P3    = 192x192
+P4    = 320x160
+P5    = 320x160
+P6    = 192x192
+P6.67 = 320x160
+P8    = 320x160
+P10   = 320x160
+*/
+const MODULE_RES = {
+  "1.25": { pxW: 256, pxH: 128 },
+  "1.53": { pxW: 210, pxH: 105 },
+  "1.86": { pxW: 320, pxH: 160 },
+  "2":    { pxW: 320, pxH: 160 },
+  "2.5":  { pxW: 320, pxH: 160 },
+  "3":    { pxW: 192, pxH: 192 },
+  "4":    { pxW: 320, pxH: 160 },
+  "5":    { pxW: 320, pxH: 160 },
+  "6":    { pxW: 192, pxH: 192 },
+  "6.67": { pxW: 320, pxH: 160 },
+  "6.7":  { pxW: 320, pxH: 160 }, // safety
+  "8":    { pxW: 320, pxH: 160 },
+  "10":   { pxW: 320, pxH: 160 },
+};
+
+function getModuleRes(modelName = "") {
+  const key = parsePitch(modelName); // e.g. "2.5", "6.67"
+  return MODULE_RES[key] || null;
+}
 
 /* ===== Receiving Card auto-pick by rule =====
    - Indoor P1.25 → R732 (2900)
@@ -64,46 +115,33 @@ const PSU_CAPACITY = {
 // ---- helpers: capacity lookups by parsed pitch ----
 function getRcCapacity(dispType, modelName = "") {
   const p = parsePitch(modelName);
-  return RC_CAPACITY[dispType]?.[p] ?? 12; // sensible fallback
+  return RC_CAPACITY[dispType]?.[p] ?? 12;
 }
 
 function getPsuCapacity(dispType, modelName = "") {
   const p = parsePitch(modelName);
-  return PSU_CAPACITY[dispType]?.[p] ?? 6; // sensible fallback
-}
-
-
-function parsePitch(modelName = "") {
-  const m = (modelName.match(/P(\d+(?:\.\d+)?)/i) || [])[1];
-  return m || "";
-}
-function parsePitchNum(modelName = "") {
-  const m = modelName.match(/P(\d+(?:\.\d+)?)/i);
-  return m ? parseFloat(m[1]) : NaN;
+  return PSU_CAPACITY[dispType]?.[p] ?? 6;
 }
 
 /* ===== Controller caps (total pixels) =====
    Outdoor - A3L-655,360, A5L-1,300,000, A6L-2,600,000
-   Indoor  - VP210H-1,300,000, VP410H-2,600,000, VP630-3,900,000, VP830-8,200,000
+   Indoor  - VP210H-1,300,000, VP410H-2,600,000, VP630-3,900,000, VP830-5,200,000
 */
 const CTRL_CAP = {
   indoor: [
     { id: "VP210H", cap: 1300000 },
     { id: "VP410H", cap: 2600000 },
     { id: "VP630",  cap: 3900000 },
-    { id: "VP830",  cap: 8200000 },
+    { id: "VP830",  cap: 5200000 },
   ],
   outdoor: [
-    { id: "A3L", cap: 655360 },
+    { id: "A3L", cap:  655360 },
     { id: "A5L", cap: 1300000 },
     { id: "A6L", cap: 2600000 },
   ],
 };
 
-/* ===== PSU model pick (label only) =====
-   - Indoor: সব pitch → 5V 40A
-   - Outdoor: P2.5–P4 → 5V 60A, P5+ → 5V 40A
-*/
+/* ===== PSU model pick (label only) ===== */
 function pickPSUModel(dispType, modelName) {
   if (dispType === "indoor") return { model: "5V 40A" };
   const p = parsePitchNum(modelName);
@@ -111,30 +149,24 @@ function pickPSUModel(dispType, modelName) {
   return { model: "5V 40A" };
 }
 
-/* Pitch/grid → total pixels */
-function gridAndPixels(modelIdOrName, widthFt, heightFt) {
-  const pitch = parsePitchNum(modelIdOrName); // mm
-  if (!pitch || isNaN(pitch) || pitch <= 0) {
-    return { across: 0, down: 0, modPxW: 0, modPxH: 0, totalPxW: 0, totalPxH: 0, totalPixels: 0 };
+/* ===== grid + pixels (real calculation with MODULE_RES) ===== */
+function gridAndPixels(modelName, widthFt, heightFt) {
+  const res = getModuleRes(modelName);
+  if (!res) {
+    return {
+      across: 0, down: 0,
+      modPxW: 0, modPxH: 0,
+      totalPxW: 0, totalPxH: 0,
+      totalPixels: 0,
+    };
   }
 
-  const id = (modelIdOrName || "").toLowerCase();
-  const isP3 = id.includes("p3") && !id.includes("3.9");
-  const isP6 = id.includes("p6") && !id.includes("6.6");
-  const use192 = (isP3 || isP6);
-
-  // module physical (mm)
-  const mmW = use192 ? 192 : 320;
-  const mmH = use192 ? 192 : 160;
-
-  // pixels per module
-  const modPxW = Math.round(mmW / pitch);
-  const modPxH = Math.round(mmH / pitch);
-
-  // module grid (same rounding scheme used elsewhere)
-  const fp = moduleFootprintFt(modelIdOrName);
+  // ft → module grid
+  const fp = moduleFootprintFt(modelName);
   const across = roundInt((parseFloat(widthFt)  || 0) / fp.w);
   const down   = roundInt((parseFloat(heightFt) || 0) / fp.h);
+
+  const { pxW: modPxW, pxH: modPxH } = res;
 
   const totalPxW = across * modPxW;
   const totalPxH = down   * modPxH;
@@ -143,14 +175,15 @@ function gridAndPixels(modelIdOrName, widthFt, heightFt) {
   return { across, down, modPxW, modPxH, totalPxW, totalPxH, totalPixels };
 }
 
-/* Pick controller by pixels & type (smallest that FITS; qty = ceil) */
+/* Pick controller by pixels & type */
 function pickControllerByPixels(dispType, totalPixels) {
   const list = CTRL_CAP[dispType] || [];
   if (!totalPixels || !list.length) return null;
-  // তুমি যেভাবে বলেছ: cap-এর চেয়ে বেশি হলে ওই model কাজ করবে না → next one
-  const fit = list.find(c => totalPixels <= c.cap) || list[list.length - 1];
-  const qty = Math.max(1, Math.ceil(totalPixels / fit.cap));
-  return { id: fit.id, cap: fit.cap, qty };
+
+  const fit = list.find(c => totalPixels <= c.cap);
+  if (!fit) return null;
+
+  return { id: fit.id, cap: fit.cap, qty: 1 };
 }
 
 /* ===== helpers to fetch prices from CONTROLLERS ===== */
@@ -195,16 +228,12 @@ export default function PriceForm({ onChange, onCalculated }) {
   );
 
   const [controllerId, setControllerId] = useState(CONTROLLERS[0]?.id);
-  const selectedController = useMemo(
-    () => CONTROLLERS.find(c => c.id === controllerId) || CONTROLLERS[0],
-    [controllerId]
-  );
 
   // Customer & display
   const [customer, setCustomer] = useState({ name: "", company: "", address: "", mobile: "" });
   const [display, setDisplay] = useState({ widthFt: "", heightFt: "", sft: "" });
 
-  // Quantities (rc & ps default; will auto-sync)
+  // Quantities
   const [rcQty, setRcQty] = useState(10);
   const [psQty, setPsQty] = useState(17);
   const [controllerQty, setControllerQty] = useState(1);
@@ -236,7 +265,7 @@ export default function PriceForm({ onChange, onCalculated }) {
     }
   }, [display.widthFt, display.heightFt]);
 
-  // Auto modules from ft → pcs (round, not ceil)
+  // Auto modules from ft → pcs
   const autoModulesQty = useMemo(() => {
     const w = parseFloat(display.widthFt);
     const h = parseFloat(display.heightFt);
@@ -254,13 +283,13 @@ export default function PriceForm({ onChange, onCalculated }) {
     return p[tierId] ?? 0;
   }, [model, tierId]);
 
-  // Receiving card pick (model-based)
+  // Receiving card pick
   const rcPicked = useMemo(
     () => pickReceivingCard(dispType, model?.name || ""),
     [dispType, model]
   );
 
-  // ===== Auto RC/PS from capacity tables =====
+  // Auto RC/PS
   const autoRcQty = useMemo(() => {
     const cap = getRcCapacity(dispType, model.name);
     return cap > 0 ? Math.ceil((autoModulesQty || 0) / cap) : 0;
@@ -271,32 +300,33 @@ export default function PriceForm({ onChange, onCalculated }) {
     return cap > 0 ? Math.ceil((autoModulesQty || 0) / cap) : 0;
   }, [dispType, model, autoModulesQty]);
 
-  // keep rc/ps in sync with auto when size/model/type changes
   useEffect(() => { setRcQty(autoRcQty); },
     [autoRcQty, dispType, modelId, display.widthFt, display.heightFt]);
   useEffect(() => { setPsQty(autoPsQty); },
     [autoPsQty, dispType, modelId, display.widthFt, display.heightFt]);
 
-  // ===== Total pixels & auto controller pick =====
-  const grid = useMemo(
-    () => gridAndPixels(model.id || model.name, display.widthFt, display.heightFt),
+  // ===== Real pixels & auto controller pick =====
+  const { totalPixels } = useMemo(
+    () => gridAndPixels(model.name, display.widthFt, display.heightFt),
     [model, display.widthFt, display.heightFt]
   );
-  const totalPixels = grid.totalPixels;
 
   const autoController = useMemo(
     () => pickControllerByPixels(dispType, totalPixels),
     [dispType, totalPixels]
   );
 
-  // apply auto controller selection (id + qty + price)
   useEffect(() => {
-    if (!autoController) return;
+    if (!autoController) {
+      // pixel cap cross করলে কিছু auto select হবে না
+      setControllerQty(0);
+      return;
+    }
     setControllerId(autoController.id);
-    setControllerQty(autoController.qty);
+    setControllerQty(1);
   }, [autoController]);
 
-  // PSU model label (for invoice brand column)
+  // PSU model label
   const psuPicked = useMemo(
     () => pickPSUModel(dispType, model?.name || ""),
     [dispType, model]
@@ -312,10 +342,10 @@ export default function PriceForm({ onChange, onCalculated }) {
       psQty,
       controllerId,
       controllerQty,
-      controllerPrice: controllerPriceById(controllerId), // <-- price auto from selected id
+      controllerPrice: controllerPriceById(controllerId),
       accessoriesTk,
       receivingPicked: rcPicked,
-      psuPicked, // <-- for invoice display
+      psuPicked,
       capacity: {
         rcModulesPerCard: getRcCapacity(dispType, model?.name || ""),
         psModulesPerUnit: getPsuCapacity(dispType, model?.name || ""),
@@ -349,7 +379,6 @@ export default function PriceForm({ onChange, onCalculated }) {
     computeAndSend();
   };
 
-  // tier/size/model/qty change → auto recalc after first calculate
   useEffect(() => {
     if (hasCalculatedRef.current) computeAndSend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -501,7 +530,7 @@ export default function PriceForm({ onChange, onCalculated }) {
               className="input"
               type="number"
               value={controllerQty}
-              onChange={e => setControllerQty(parseFloat(e.target.value || 0))}
+              readOnly
             />
           </label>
         </div>
@@ -524,10 +553,16 @@ export default function PriceForm({ onChange, onCalculated }) {
                 </option>
               ))}
             </select>
-            {autoController && (
+            {autoController ? (
               <div className="hint" style={{fontSize:12, color:"#64748b"}}>
-                Suggested: {autoController.id} (cap {autoController.cap.toLocaleString()} px) • Qty {autoController.qty}
+                Suggested: {autoController.id} (cap {autoController.cap.toLocaleString()} px) • Qty 1
               </div>
+            ) : (
+              totalPixels > 0 && (
+                <div className="hint" style={{fontSize:12, color:"#ef4444"}}>
+                  No controller auto-selected (pixels exceed maximum cap)
+                </div>
+              )
             )}
           </label>
           <label>
